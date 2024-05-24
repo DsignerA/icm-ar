@@ -14,7 +14,12 @@
     <div id="inventory-icons"></div>
 
     <div style='margin: 0px; overflow: hidden;'>
-      <a-scene loading-screen="dotsColor: white; backgroundColor: black" id="scene" cursor="fuse: false; rayOrigin: mouse;" embedded arjs="debugUIEnabled: false;" vr-mode-ui="enabled: false" artoolkit='sourceType: webcam; detectionMode: mono; maxDetectionRate: 30; canvasWidth: 240; canvasHeight: 180' ar-template renderer="logarithmicDepthBuffer: false;" gesture-detector>
+      <a-scene 
+        embedded
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+        vr-mode-ui="enabled: false"
+        renderer="logarithmicDepthBuffer: true;"
+      >
         <a-assets>
           <a-asset-item id="apt1" src="https://rvanfts.com/ar/1-branded-chips/scene.gltf"></a-asset-item>
           <a-asset-item id="apt2" src="https://rvanfts.com/ar/ps5/scene.gltf"></a-asset-item>
@@ -298,24 +303,29 @@ export default {
     }
   },
   mounted() {
-    this.loadMarkers();
+  this.loadMarkers();
 
-    const loader = document.getElementById('loader');
-    const myapt = document.getElementById('myapt');
+  const loader = document.getElementById('loader');
+  const myapt = document.getElementById('myapt');
+  if (myapt) {
     myapt.addEventListener('model-loading', () => {
       loader.style.display = 'block';
       myapt.setAttribute('visible', 'false');
     });
+
     myapt.addEventListener('model-loaded', () => {
       loader.style.display = 'none';
       myapt.setAttribute('visible', 'true');
     });
-
-    this.checkAuthState();
   }
+
+  this.checkAuthState();
+}
+
 };
 </script>
 
 <style>
 /* Include your styles here */
 </style>
+
