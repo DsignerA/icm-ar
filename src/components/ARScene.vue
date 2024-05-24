@@ -26,7 +26,7 @@
           </a-marker>
 
           <a-marker type="pattern" url="https://rvanfts.com/ar/1patterns/main-ar.patt" id="marker2">
-            <a-entity raycaster="objects: .clickable" position="0 0 0" id="myapt2" scale=".01 .01 .01" rotation="-50 0 0" gltf-model="#apt2" class="clickable" visible="true" gesture-handler></a-entity>
+            <a-entity raycaster="objects: .clickable" position="0 0 0" id="myapt2" scale="1 1 1" rotation="-50 0 0" gltf-model="#apt2" class="clickable" visible="true" gesture-handler></a-entity>
           </a-marker>
         </template>
 
@@ -298,22 +298,21 @@ export default {
     }
   },
   mounted() {
-  this.loadMarkers();
+    this.loadMarkers();
 
-  const loader = document.getElementById('loader');
-  const myapt = document.getElementById('myapt');
-  myapt.addEventListener('model-loading', () => {
-    loader.style.display = 'block';
-    myapt.setAttribute('visible', 'false');
-  });
-  myapt.addEventListener('model-loaded', () => {
-    loader.style.display = 'none';
-    myapt.setAttribute('visible', 'true');
-  });
+    const loader = document.getElementById('loader');
+    const myapt = document.getElementById('myapt');
+    myapt.addEventListener('model-loading', () => {
+      loader.style.display = 'block';
+      myapt.setAttribute('visible', 'false');
+    });
+    myapt.addEventListener('model-loaded', () => {
+      loader.style.display = 'none';
+      myapt.setAttribute('visible', 'true');
+    });
 
-  this.checkAuthState();
-}
-
+    this.checkAuthState();
+  }
 };
 </script>
 
