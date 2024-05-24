@@ -5,7 +5,7 @@
   </template>
   
   <script>
-  import ARScene from '/components/ARScene.vue';
+  import ARScene from '../components/ARScene.vue';
   
   export default {
     name: 'App',
