@@ -326,18 +326,7 @@ export default {
   },
   mounted() {
     this.loadMarkers();
-
     const loader = document.getElementById('loader');
-    const myapt = document.getElementById('myapt');
-    myapt.addEventListener('model-loading', () => {
-      loader.style.display = 'block';
-      myapt.setAttribute('visible', 'false');
-    });
-    myapt.addEventListener('model-loaded', () => {
-      loader.style.display = 'none';
-      myapt.setAttribute('visible', 'true');
-    });
-
     this.checkAuthState();
   }
 };
