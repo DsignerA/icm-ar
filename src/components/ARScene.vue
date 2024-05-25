@@ -67,7 +67,7 @@
     </div>
 
     <div id="info-box">
-      <p id="info-name"></p>
+      <p id="info-name"></p> 
       <p id="info-description"></p>
       <p id="info-addedAt"></p>
       <button class="button" id="mint-button" @click="mintItem">Collect</button>
@@ -79,7 +79,7 @@
 
 <script>
 import { auth, db } from '../firebase'; // Ensure the path to firebase.js is correct
-import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword } from '../firebase'; // Ensure the path to firebase.js is correct
 
 export default {
   data() {
@@ -100,9 +100,9 @@ export default {
     async addItemToInventory(item) {
       const user = auth.currentUser;
       if (user) {
-        const userRef = doc(db, 'users', user.uid);
+        const userRef = db.collection('users').doc(user.uid);
         try {
-          await updateDoc(userRef, {
+          await userRef.update({
             inventory: arrayUnion(item)
           });
           alert('Item added to inventory!');
@@ -116,11 +116,11 @@ export default {
     async displayInventory() {
       const user = auth.currentUser;
       if (user) {
-        const userRef = doc(db, 'users', user.uid);
+        const userRef = db.collection('users').doc(user.uid);
         try {
-          const docSnap = await getDoc(userRef);
-          if (docSnap.exists()) {
-            const inventory = docSnap.data().inventory || [];
+          const doc = await userRef.get();
+          if (doc.exists) {
+            const inventory = doc.data().inventory || [];
             const inventoryIcons = document.getElementById('inventory-icons');
             inventoryIcons.innerHTML = '';
 
@@ -206,7 +206,7 @@ export default {
     signup() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      auth.createUserWithEmailAndPassword(email, password)
+      createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const user = userCredential.user;
           setDoc(doc(db, 'users', user.uid), {
@@ -225,7 +225,7 @@ export default {
     login() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      auth.signInWithEmailAndPassword(email, password)
+      signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           alert('Login successful!');
           this.checkAuthState();
@@ -290,12 +290,6 @@ export default {
       });
     },
     async loadMarkers() {
-      const user = auth.currentUser;
-    console.log('User:', user); // Check if the user is authenticated
-    if (!user) {
-      alert('User not authenticated');
-      return;
-    }
       const scene = document.querySelector('a-scene');
       const objectsRef = collection(db, 'objects');
       try {
@@ -333,6 +327,18 @@ export default {
   },
   mounted() {
     this.loadMarkers();
+
+    const loader = document.getElementById('loader');
+    const myapt = document.getElementById('myapt');
+    myapt.addEventListener('model-loading', () => {
+      loader.style.display = 'block';
+      myapt.setAttribute('visible', 'false');
+    });
+    myapt.addEventListener('model-loaded', () => {
+      loader.style.display = 'none';
+      myapt.setAttribute('visible', 'true');
+    });
+
     this.checkAuthState();
   }
 };
