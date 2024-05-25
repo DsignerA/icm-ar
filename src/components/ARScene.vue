@@ -290,6 +290,12 @@ export default {
       });
     },
     async loadMarkers() {
+      const user = auth.currentUser;
+    console.log('User:', user); // Check if the user is authenticated
+    if (!user) {
+      alert('User not authenticated');
+      return;
+    }
       const scene = document.querySelector('a-scene');
       const objectsRef = collection(db, 'objects');
       try {
