@@ -79,7 +79,7 @@
 
 <script>
 import { auth, db } from '../firebase'; // Ensure the path to firebase.js is correct
-import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
 
 export default {
   data() {
@@ -327,7 +327,6 @@ export default {
   },
   mounted() {
     this.loadMarkers();
-
     this.checkAuthState();
   }
 };
