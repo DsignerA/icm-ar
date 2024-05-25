@@ -79,6 +79,7 @@
 
 <script>
 import { auth, db } from '../firebase'; // Ensure the path to firebase.js is correct
+import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 export default {
   data() {
@@ -99,10 +100,10 @@ export default {
     async addItemToInventory(item) {
       const user = auth.currentUser;
       if (user) {
-        const userRef = db.collection('users').doc(user.uid);
+        const userRef = doc(db, 'users', user.uid);
         try {
-          await userRef.update({
-            inventory: firebase.firestore.FieldValue.arrayUnion(item)
+          await updateDoc(userRef, {
+            inventory: arrayUnion(item)
           });
           alert('Item added to inventory!');
         } catch (error) {
@@ -115,11 +116,11 @@ export default {
     async displayInventory() {
       const user = auth.currentUser;
       if (user) {
-        const userRef = db.collection('users').doc(user.uid);
+        const userRef = doc(db, 'users', user.uid);
         try {
-          const doc = await userRef.get();
-          if (doc.exists) {
-            const inventory = doc.data().inventory || [];
+          const docSnap = await getDoc(userRef);
+          if (docSnap.exists()) {
+            const inventory = docSnap.data().inventory || [];
             const inventoryIcons = document.getElementById('inventory-icons');
             inventoryIcons.innerHTML = '';
 
@@ -178,11 +179,11 @@ export default {
       }
     },
     async fetchMarkerData(markerId) {
-      const objectRef = db.collection('objects').doc(markerId);
+      const objectRef = doc(db, 'objects', markerId);
       try {
-        const doc = await objectRef.get();
-        if (doc.exists) {
-          const data = doc.data();
+        const docSnap = await getDoc(objectRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
           if (data) {
             this.displayItemData(data);
           } else {
@@ -192,7 +193,7 @@ export default {
           console.log("No data found in Firestore for marker:", markerId);
           if (this.currentItem) {
             this.displayItemData(this.currentItem);
-            await objectRef.set(this.currentItem);
+            await setDoc(objectRef, this.currentItem);
             console.log("Default data pushed to Firestore for marker:", markerId);
           } else {
             console.error('Current item is not valid or is null');
@@ -208,7 +209,7 @@ export default {
       auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-          db.collection('users').doc(user.uid).set({
+          setDoc(doc(db, 'users', user.uid), {
             email: user.email,
             inventory: []
           }).then(() => {
@@ -290,9 +291,9 @@ export default {
     },
     async loadMarkers() {
       const scene = document.querySelector('a-scene');
-      const objectsRef = db.collection('objects');
+      const objectsRef = collection(db, 'objects');
       try {
-        const snapshot = await objectsRef.get();
+        const snapshot = await getDocs(objectsRef);
         if (snapshot.empty) {
           this.defaultSceneVisible = true;
         } else {
@@ -326,7 +327,7 @@ export default {
   },
   mounted() {
     this.loadMarkers();
-    const loader = document.getElementById('loader');
+
     this.checkAuthState();
   }
 };
