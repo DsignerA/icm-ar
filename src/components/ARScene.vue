@@ -304,6 +304,7 @@ export default {
         const user = auth.currentUser;
         if (!user) {
           console.error('User is not authenticated');
+          alert('Please log in to view the AR markers.');
           return;
         }
         console.log('User authenticated:', user.uid);
@@ -357,6 +358,8 @@ export default {
           loader.style.display = 'none';
           myapt.setAttribute('visible', 'true');
         });
+      } else {
+        console.warn('Element #myapt not found');
       }
 
       checkAuthState();
