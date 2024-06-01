@@ -1,7 +1,7 @@
 <template>
   <div style="overflow:auto;">
     <button class="icon-button" style="left: 10px;" @click="openNav"><i class="fas fa-bars"></i></button>
-    <button class="icon-button" style="right: 10px;" id="view-inventory-button" @click="displayInventory"><i class="fas fa-box"></i></button>
+    <button class="icon-button" style="right: 10px;" @click="displayInventory"><i class="fas fa-box"></i></button>
 
     <div id="mySidebar" class="sidebar">
       <a href="javascript:void(0)" class="closebtn" @click="closeNav">&times;</a>
@@ -10,7 +10,7 @@
         <button class="button" @click="login">Login</button>
       </div>
     </div>
-    <button class="icon-button logout-button" id="logout-button" @click="logout" style="display: none;"><i class="fas fa-sign-out-alt"></i></button>
+    <button class="icon-button logout-button" @click="logout" style="display: none;"><i class="fas fa-sign-out-alt"></i></button>
     <div id="inventory-icons"></div>
 
     <div style='margin: 0px; overflow: hidden;'>
@@ -70,7 +70,7 @@
       <p id="info-name"></p>
       <p id="info-description"></p>
       <p id="info-addedAt"></p>
-      <button class="button" id="mint-button" @click="mintItem">Collect</button>
+      <button class="button" @click="mintItem">Collect</button>
     </div>
 
     <div id="loader" class="loader" style="display: none;"></div>
@@ -78,27 +78,27 @@
 </template>
 
 <script>
-import { auth, db } from '../firebase'; // Ensure the path to firebase.js is correct
+import { ref, onMounted } from 'vue';
+import { auth, db } from '../firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { collection, getDocs, doc, setDoc, updateDoc, getDoc, arrayUnion } from 'firebase/firestore';
 
 export default {
-  data() {
-    return {
-      currentItem: null,
-      allowClicks: false,
-      defaultSceneVisible: true,
-    };
-  },
-  methods: {
-    openNav() {
+  setup() {
+    const currentItem = ref(null);
+    const allowClicks = ref(false);
+    const defaultSceneVisible = ref(true);
+
+    const openNav = () => {
       document.getElementById("mySidebar").style.width = "125px";
-      this.checkAuthState();
-    },
-    closeNav() {
+      checkAuthState();
+    };
+
+    const closeNav = () => {
       document.getElementById("mySidebar").style.width = "0";
-    },
-    async addItemToInventory(item) {
+    };
+
+    const addItemToInventory = async (item) => {
       const user = auth.currentUser;
       if (user) {
         const userRef = doc(db, 'users', user.uid);
@@ -113,8 +113,9 @@ export default {
       } else {
         alert('Please log in to add items to your inventory.');
       }
-    },
-    async displayInventory() {
+    };
+
+    const displayInventory = async () => {
       const user = auth.currentUser;
       if (user) {
         const userRef = doc(db, 'users', user.uid);
@@ -171,30 +172,32 @@ export default {
       } else {
         alert('Please log in to view your inventory.');
       }
-    },
-    displayItemData(item) {
+    };
+
+    const displayItemData = (item) => {
       if (item) {
         document.getElementById('info-name').innerText = item.name || '';
         document.getElementById('info-description').innerText = item.description || '';
         document.getElementById('info-addedAt').innerText = item.addedAt || '';
       }
-    },
-    async fetchMarkerData(markerId) {
+    };
+
+    const fetchMarkerData = async (markerId) => {
       const objectRef = doc(db, 'objects', markerId);
       try {
         const docSnap = await getDoc(objectRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data) {
-            this.displayItemData(data);
+            displayItemData(data);
           } else {
             console.error('No data found in document:', markerId);
           }
         } else {
           console.log("No data found in Firestore for marker:", markerId);
-          if (this.currentItem) {
-            this.displayItemData(this.currentItem);
-            await setDoc(objectRef, this.currentItem);
+          if (currentItem.value) {
+            displayItemData(currentItem.value);
+            await setDoc(objectRef, currentItem.value);
             console.log("Default data pushed to Firestore for marker:", markerId);
           } else {
             console.error('Current item is not valid or is null');
@@ -203,8 +206,9 @@ export default {
       } catch (error) {
         console.error('Error getting object data: ', error);
       }
-    },
-    async signup() {
+    };
+
+    const signup = async () => {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
       try {
@@ -218,26 +222,29 @@ export default {
       } catch (error) {
         alert(error.message);
       }
-    },
-    async login() {
+    };
+
+    const login = async () => {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
       try {
         await signInWithEmailAndPassword(auth, email, password);
         alert('Login successful!');
-        this.checkAuthState();
+        checkAuthState();
       } catch (error) {
         alert(error.message);
       }
-    },
-    mintItem() {
-      if (this.currentItem) {
-        this.addItemToInventory(this.currentItem);
+    };
+
+    const mintItem = () => {
+      if (currentItem.value) {
+        addItemToInventory(currentItem.value);
       } else {
         alert('No item is currently set to mint.');
       }
-    },
-    async logout() {
+    };
+
+    const logout = async () => {
       try {
         await auth.signOut();
         alert('Logout successful!');
@@ -247,8 +254,9 @@ export default {
       } catch (error) {
         alert(error.message);
       }
-    },
-    checkAuthState() {
+    };
+
+    const checkAuthState = () => {
       auth.onAuthStateChanged((user) => {
         if (user && document.getElementById("mySidebar").style.width !== "0px") {
           document.getElementById('logout-button').style.display = 'block';
@@ -256,12 +264,13 @@ export default {
           document.getElementById('logout-button').style.display = 'none';
         }
       });
-    },
-    handleMarkerEvents(markerId, entityId) {
+    };
+
+    const handleMarkerEvents = (markerId, entityId) => {
       const marker = document.getElementById(markerId);
       marker.addEventListener('markerFound', async (e) => {
-        this.allowClicks = true;
-        this.currentItem = {
+        allowClicks.value = true;
+        currentItem.value = {
           name: `3D Object ${markerId}`,
           description: `This is a 3D object ${markerId} from the AR experience.`,
           type: '3d-object',
@@ -269,32 +278,33 @@ export default {
           addedAt: new Date().toISOString()
         };
         const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-        await this.fetchMarkerData(markerDataId);
+        await fetchMarkerData(markerDataId);
       });
 
       marker.addEventListener('markerLost', (e) => {
-        this.allowClicks = false;
-        this.currentItem = null;
+        allowClicks.value = false;
+        currentItem.value = null;
       });
 
       document.getElementById(entityId).addEventListener('click', async (evt) => {
-        if (this.allowClicks) {
+        if (allowClicks.value) {
           const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-          await this.fetchMarkerData(markerDataId);
+          await fetchMarkerData(markerDataId);
           const infoBox = document.getElementById('info-box');
           infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
         }
       });
-    },
-    async loadMarkers() {
+    };
+
+    const loadMarkers = async () => {
       const scene = document.querySelector('a-scene');
       const objectsRef = collection(db, 'objects');
       try {
         const snapshot = await getDocs(objectsRef);
         if (snapshot.empty) {
-          this.defaultSceneVisible = true;
+          defaultSceneVisible.value = true;
         } else {
-          this.defaultSceneVisible = false;
+          defaultSceneVisible.value = false;
           snapshot.forEach(doc => {
             const data = doc.data();
             const marker = document.createElement('a-marker');
@@ -314,31 +324,43 @@ export default {
 
             marker.appendChild(entity);
             scene.appendChild(marker);
-            this.handleMarkerEvents(`marker-${doc.id}`, `entity-${doc.id}`);
+            handleMarkerEvents(`marker-${doc.id}`, `entity-${doc.id}`);
           });
         }
       } catch (error) {
         console.error('Error loading markers: ', error);
       }
-    }
-  },
-  mounted() {
-    this.loadMarkers();
+    };
 
-    const loader = document.getElementById('loader');
-    const myapt = document.getElementById('myapt');
-    if (myapt) {
-      myapt.addEventListener('model-loading', () => {
-        loader.style.display = 'block';
-        myapt.setAttribute('visible', 'false');
-      });
-      myapt.addEventListener('model-loaded', () => {
-        loader.style.display = 'none';
-        myapt.setAttribute('visible', 'true');
-      });
-    }
+    onMounted(() => {
+      loadMarkers();
 
-    this.checkAuthState();
+      const loader = document.getElementById('loader');
+      const myapt = document.getElementById('myapt');
+      if (myapt) {
+        myapt.addEventListener('model-loading', () => {
+          loader.style.display = 'block';
+          myapt.setAttribute('visible', 'false');
+        });
+        myapt.addEventListener('model-loaded', () => {
+          loader.style.display = 'none';
+          myapt.setAttribute('visible', 'true');
+        });
+      }
+
+      checkAuthState();
+    });
+
+    return {
+      openNav,
+      closeNav,
+      signup,
+      login,
+      logout,
+      mintItem,
+      displayInventory,
+      defaultSceneVisible
+    };
   }
 };
 </script>
