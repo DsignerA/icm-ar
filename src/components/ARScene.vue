@@ -260,9 +260,9 @@ export default {
       auth.onAuthStateChanged((user) => {
         if (user && document.getElementById("mySidebar").style.width !== "0px") {
           document.getElementById('logout-button').style.display = 'block';
-        } else {
+        } /*else {
           document.getElementById('logout-button').style.display = 'none';
-        }
+        }*/
       });
     };
 
