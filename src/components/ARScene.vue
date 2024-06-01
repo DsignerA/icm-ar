@@ -72,6 +72,10 @@
 </template>
 
 <script>
+import { auth, db } from '../firebase';
+import { collection, doc, getDoc, setDoc, updateDoc, arrayUnion, getDocs } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+
 export default {
   data() {
     return {
@@ -89,12 +93,12 @@ export default {
       document.getElementById("mySidebar").style.width = "0";
     },
     async addItemToInventory(item) {
-      const user = firebase.auth().currentUser;
+      const user = auth.currentUser;
       if (user) {
-        const userRef = firebase.firestore().collection('users').doc(user.uid);
+        const userRef = doc(db, 'users', user.uid);
         try {
-          await userRef.update({
-            inventory: firebase.firestore.FieldValue.arrayUnion(item)
+          await updateDoc(userRef, {
+            inventory: arrayUnion(item)
           });
           alert('Item added to inventory!');
         } catch (error) {
@@ -105,13 +109,13 @@ export default {
       }
     },
     async displayInventory() {
-      const user = firebase.auth().currentUser;
+      const user = auth.currentUser;
       if (user) {
-        const userRef = firebase.firestore().collection('users').doc(user.uid);
+        const userRef = doc(db, 'users', user.uid);
         try {
-          const doc = await userRef.get();
-          if (doc.exists) {
-            const inventory = doc.data().inventory || [];
+          const docSnap = await getDoc(userRef);
+          if (docSnap.exists()) {
+            const inventory = docSnap.data().inventory || [];
             const inventoryIcons = document.getElementById('inventory-icons');
             inventoryIcons.innerHTML = '';
 
@@ -170,11 +174,11 @@ export default {
       }
     },
     async fetchMarkerData(markerId) {
-      const objectRef = firebase.firestore().collection('objects').doc(markerId);
+      const objectRef = doc(db, 'objects', markerId);
       try {
-        const doc = await objectRef.get();
-        if (doc.exists) {
-          const data = doc.data();
+        const docSnap = await getDoc(objectRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
           if (data) {
             this.displayItemData(data);
           } else {
@@ -184,7 +188,7 @@ export default {
           console.log("No data found in Firestore for marker:", markerId);
           if (this.currentItem) {
             this.displayItemData(this.currentItem);
-            await objectRef.set(this.currentItem);
+            await setDoc(objectRef, this.currentItem);
             console.log("Default data pushed to Firestore for marker:", markerId);
           } else {
             console.error('Current item is not valid or is null');
@@ -197,17 +201,14 @@ export default {
     async signup() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(async (userCredential) => {
           const user = userCredential.user;
-          firebase.firestore().collection('users').doc(user.uid).set({
+          await setDoc(doc(db, 'users', user.uid), {
             email: user.email,
             inventory: []
-          }).then(() => {
-            alert('User object created in Firestore!');
-          }).catch((error) => {
-            console.error('Error creating user object in Firestore: ', error);
           });
+          alert('User object created in Firestore!');
         })
         .catch((error) => {
           alert(error.message);
@@ -216,7 +217,7 @@ export default {
     async login() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      firebase.auth().signInWithEmailAndPassword(email, password)
+      signInWithEmailAndPassword(auth, email, password)
         .then(() => {
           alert('Login successful!');
           this.checkAuthState();
@@ -233,7 +234,7 @@ export default {
       }
     },
     async logout() {
-      firebase.auth().signOut().then(() => {
+      signOut(auth).then(() => {
         alert('Logout successful!');
         document.getElementById('signup-button').style.display = 'block';
         document.getElementById('login-button').style.display = 'block';
@@ -243,7 +244,7 @@ export default {
       });
     },
     checkAuthState() {
-      firebase.auth().onAuthStateChanged((user) => {
+      onAuthStateChanged(auth, (user) => {
         if (user && document.getElementById("mySidebar").style.width !== "0px") {
           document.getElementById('logout-button').style.display = 'block';
         } else {
@@ -282,9 +283,9 @@ export default {
     },
     async loadMarkers() {
       const scene = document.querySelector('a-scene');
-      const objectsRef = firebase.firestore().collection('objects');
+      const objectsRef = collection(db, 'objects');
       try {
-        const snapshot = await objectsRef.get();
+        const snapshot = await getDocs(objectsRef);
         if (snapshot.empty) {
           this.defaultSceneVisible = true;
         } else {
