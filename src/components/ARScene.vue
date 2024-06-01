@@ -1,5 +1,30 @@
-<template>
-  <div style="overflow:auto;">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Wallet</title>
+  <script src="https://aframe.io/releases/0.9.2/aframe.min.js"></script>
+  <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/dev/aframe/build/aframe-ar.js"></script>
+  <script src="https://rawgit.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
+  <script src="https://raw.githack.com/fcor/arjs-gestures/master/dist/gestures.js"></script>
+  <script src="https://rawgit.com/mayognaise/aframe-gif-shader/master/dist/aframe-gif-shader.min.js"></script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <style>
+    /* Your CSS styles here */
+  </style>
+</head>
+<body>
+
+  <div id="app" style="overflow:auto;">
     <button class="icon-button" style="left: 10px;" @click="openNav"><i class="fas fa-bars"></i></button>
     <button class="icon-button" style="right: 10px;" @click="displayInventory"><i class="fas fa-box"></i></button>
 
@@ -28,39 +53,33 @@
           <a-asset-item id="apt2" src="https://rvanfts.com/ar/ps5/scene.gltf"></a-asset-item>
         </a-assets>
 
-        <template v-if="defaultSceneVisible">
-          <a-marker preset="hiro" id="marker1">
-            <a-entity 
-              raycaster="objects: .clickable" 
-              position="0 0 0" 
-              id="myapt1" 
-              scale="1 1 1" 
-              rotation="-50 0 0" 
-              gltf-model="#apt1" 
-              class="clickable" 
-              visible="true" 
-              gesture-handler
-            ></a-entity>
-          </a-marker>
+        <a-marker preset="hiro" id="marker1">
+          <a-entity 
+            raycaster="objects: .clickable" 
+            position="0 0 0" 
+            id="myapt1" 
+            scale="1 1 1" 
+            rotation="-50 0 0" 
+            gltf-model="#apt1" 
+            class="clickable" 
+            visible="true" 
+            gesture-handler
+          ></a-entity>
+        </a-marker>
 
-          <a-marker type="pattern" url="https://rvanfts.com/ar/1patterns/main-ar.patt" id="marker2">
-            <a-entity 
-              raycaster="objects: .clickable" 
-              position="0 0 0" 
-              id="myapt2" 
-              scale="1 1 1" 
-              rotation="-50 0 0" 
-              gltf-model="#apt2" 
-              class="clickable" 
-              visible="true" 
-              gesture-handler
-            ></a-entity>
-          </a-marker>
-        </template>
-
-        <template v-else>
-          <!-- Markers and entities will be dynamically loaded -->
-        </template>
+        <a-marker type="pattern" url="https://rvanfts.com/ar/1patterns/main-ar.patt" id="marker2">
+          <a-entity 
+            raycaster="objects: .clickable" 
+            position="0 0 0" 
+            id="myapt2" 
+            scale="1 1 1" 
+            rotation="-50 0 0" 
+            gltf-model="#apt2" 
+            class="clickable" 
+            visible="true" 
+            gesture-handler
+          ></a-entity>
+        </a-marker>
 
         <a-entity camera></a-entity>
       </a-scene>
@@ -75,310 +94,272 @@
 
     <div id="loader" class="loader" style="display: none;"></div>
   </div>
-</template>
 
-<script>
-import { ref, onMounted } from 'vue';
-import { auth, db } from '../firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { collection, getDocs, doc, setDoc, updateDoc, getDoc, arrayUnion } from 'firebase/firestore';
-
-export default {
-  setup() {
-    const currentItem = ref(null);
-    const allowClicks = ref(false);
-    const defaultSceneVisible = ref(true);
-
-    const openNav = () => {
-      document.getElementById("mySidebar").style.width = "125px";
-      checkAuthState();
-    };
-
-    const closeNav = () => {
-      document.getElementById("mySidebar").style.width = "0";
-    };
-
-    const addItemToInventory = async (item) => {
-      const user = auth.currentUser;
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        try {
-          await updateDoc(userRef, {
-            inventory: arrayUnion(item)
-          });
-          alert('Item added to inventory!');
-        } catch (error) {
-          console.error('Error adding item to inventory: ', error);
-        }
-      } else {
-        alert('Please log in to add items to your inventory.');
-      }
-    };
-
-    const displayInventory = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        try {
-          const docSnap = await getDoc(userRef);
-          if (docSnap.exists()) {
-            const inventory = docSnap.data().inventory || [];
-            const inventoryIcons = document.getElementById('inventory-icons');
-            inventoryIcons.innerHTML = '';
-
-            inventory.forEach(item => {
-              let iconElement;
-              switch (item.type) {
-                case 'info':
-                case 'image':
-                  iconElement = document.createElement('img');
-                  iconElement.src = item.src;
-                  iconElement.classList.add('inventory-icon');
-                  inventoryIcons.appendChild(iconElement);
-                  break;
-                case '3d-object':
-                  iconElement = document.createElement('model-viewer');
-                  iconElement.setAttribute('src', item.src);
-                  iconElement.setAttribute('alt', '3D Object');
-                  iconElement.setAttribute('camera-controls', '');
-                  iconElement.setAttribute('auto-rotate', '');
-                  iconElement.setAttribute('class', 'inventory-icon');
-                  inventoryIcons.appendChild(iconElement);
-                  break;
-                case 'video':
-                  iconElement = document.createElement('video');
-                  iconElement.src = item.src;
-                  iconElement.classList.add('inventory-icon');
-                  iconElement.setAttribute('autoplay', 'true');
-                  iconElement.setAttribute('muted', 'true');
-                  inventoryIcons.appendChild(iconElement);
-                  break;
-                case 'gif':
-                  iconElement = document.createElement('img');
-                  iconElement.src = item.src;
-                  iconElement.classList.add('inventory-icon');
-                  inventoryIcons.appendChild(iconElement);
-                  break;
-                default:
-                  break;
-              }
-            });
-          } else {
-            console.log("No such document!");
-          }
-        } catch (error) {
-          console.log("Error getting document:", error);
-        }
-      } else {
-        alert('Please log in to view your inventory.');
-      }
-    };
-
-    const displayItemData = (item) => {
-      if (item) {
-        document.getElementById('info-name').innerText = item.name || '';
-        document.getElementById('info-description').innerText = item.description || '';
-        document.getElementById('info-addedAt').innerText = item.addedAt || '';
-      }
-    };
-
-    const fetchMarkerData = async (markerId) => {
-      const objectRef = doc(db, 'objects', markerId);
-      try {
-        const docSnap = await getDoc(objectRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data) {
-            displayItemData(data);
-          } else {
-            console.error('No data found in document:', markerId);
-          }
-        } else {
-          console.log("No data found in Firestore for marker:", markerId);
-          if (currentItem.value) {
-            displayItemData(currentItem.value);
-            await setDoc(objectRef, currentItem.value);
-            console.log("Default data pushed to Firestore for marker:", markerId);
-          } else {
-            console.error('Current item is not valid or is null');
-          }
-        }
-      } catch (error) {
-        console.error('Error getting object data: ', error);
-      }
-    };
-
-    const signup = async () => {
-      const email = prompt('Enter your email:');
-      const password = prompt('Enter your password:');
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        await setDoc(doc(db, 'users', user.uid), {
-          email: user.email,
-          inventory: []
-        });
-        alert('User object created in Firestore!');
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-
-    const login = async () => {
-      const email = prompt('Enter your email:');
-      const password = prompt('Enter your password:');
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert('Login successful!');
-        checkAuthState();
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-
-    const mintItem = () => {
-      if (currentItem.value) {
-        addItemToInventory(currentItem.value);
-      } else {
-        alert('No item is currently set to mint.');
-      }
-    };
-
-    const logout = async () => {
-      try {
-        await auth.signOut();
-        alert('Logout successful!');
-        document.getElementById('signup-button').style.display = 'block';
-        document.getElementById('login-button').style.display = 'block';
-        document.getElementById('logout-button').style.display = 'none';
-      } catch (error) {
-        alert(error.message);
-      }
-    };
-
-    const checkAuthState = () => {
-      auth.onAuthStateChanged((user) => {
-        if (user && document.getElementById("mySidebar").style.width !== "0px") {
-          document.getElementById('logout-button').style.display = 'block';
-        } else {
-          document.getElementById('logout-button').style.display = 'none';
-        }
-      });
-    };
-
-    const handleMarkerEvents = (markerId, entityId) => {
-      const marker = document.getElementById(markerId);
-      marker.addEventListener('markerFound', async (e) => {
-        allowClicks.value = true;
-        currentItem.value = {
-          name: `3D Object ${markerId}`,
-          description: `This is a 3D object ${markerId} from the AR experience.`,
-          type: '3d-object',
-          src: document.getElementById(entityId).getAttribute('gltf-model'),
-          addedAt: new Date().toISOString()
+  <script>
+    const app = Vue.createApp({
+      data() {
+        return {
+          currentItem: null,
+          allowClicks: false,
+          defaultSceneVisible: true,
         };
-        const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-        await fetchMarkerData(markerDataId);
-      });
+      },
+      methods: {
+        openNav() {
+          document.getElementById("mySidebar").style.width = "125px";
+          this.checkAuthState();
+        },
+        closeNav() {
+          document.getElementById("mySidebar").style.width = "0";
+        },
+        async addItemToInventory(item) {
+          const user = firebase.auth().currentUser;
+          if (user) {
+            const userRef = firebase.firestore().collection('users').doc(user.uid);
+            try {
+              await userRef.update({
+                inventory: firebase.firestore.FieldValue.arrayUnion(item)
+              });
+              alert('Item added to inventory!');
+            } catch (error) {
+              console.error('Error adding item to inventory: ', error);
+            }
+          } else {
+            alert('Please log in to add items to your inventory.');
+          }
+        },
+        async displayInventory() {
+          const user = firebase.auth().currentUser;
+          if (user) {
+            const userRef = firebase.firestore().collection('users').doc(user.uid);
+            try {
+              const doc = await userRef.get();
+              if (doc.exists) {
+                const inventory = doc.data().inventory || [];
+                const inventoryIcons = document.getElementById('inventory-icons');
+                inventoryIcons.innerHTML = '';
 
-      marker.addEventListener('markerLost', (e) => {
-        allowClicks.value = false;
-        currentItem.value = null;
-      });
+                inventory.forEach(item => {
+                  let iconElement;
+                  switch (item.type) {
+                    case 'info':
+                    case 'image':
+                      iconElement = document.createElement('img');
+                      iconElement.src = item.src;
+                      iconElement.classList.add('inventory-icon');
+                      inventoryIcons.appendChild(iconElement);
+                      break;
+                    case '3d-object':
+                      iconElement = document.createElement('model-viewer');
+                      iconElement.setAttribute('src', item.src);
+                      iconElement.setAttribute('alt', '3D Object');
+                      iconElement.setAttribute('camera-controls', '');
+                      iconElement.setAttribute('auto-rotate', '');
+                      iconElement.setAttribute('class', 'inventory-icon');
+                      inventoryIcons.appendChild(iconElement);
+                      break;
+                    case 'video':
+                      iconElement = document.createElement('video');
+                      iconElement.src = item.src;
+                      iconElement.classList.add('inventory-icon');
+                      iconElement.setAttribute('autoplay', 'true');
+                      iconElement.setAttribute('muted', 'true');
+                      inventoryIcons.appendChild(iconElement);
+                      break;
+                    case 'gif':
+                      iconElement = document.createElement('img');
+                      iconElement.src = item.src;
+                      iconElement.classList.add('inventory-icon');
+                      inventoryIcons.appendChild(iconElement);
+                      break;
+                    default:
+                      break;
+                  }
+                });
+              } else {
+                console.log("No such document!");
+              }
+            } catch (error) {
+              console.log("Error getting document:", error);
+            }
+          } else {
+            alert('Please log in to view your inventory.');
+          }
+        },
+        displayItemData(item) {
+          if (item) {
+            document.getElementById('info-name').innerText = item.name || '';
+            document.getElementById('info-description').innerText = item.description || '';
+            document.getElementById('info-addedAt').innerText = item.addedAt || '';
+          }
+        },
+        async fetchMarkerData(markerId) {
+          const objectRef = firebase.firestore().collection('objects').doc(markerId);
+          try {
+            const doc = await objectRef.get();
+            if (doc.exists) {
+              const data = doc.data();
+              if (data) {
+                this.displayItemData(data);
+              } else {
+                console.error('No data found in document:', markerId);
+              }
+            } else {
+              console.log("No data found in Firestore for marker:", markerId);
+              if (this.currentItem) {
+                this.displayItemData(this.currentItem);
+                await objectRef.set(this.currentItem);
+                console.log("Default data pushed to Firestore for marker:", markerId);
+              } else {
+                console.error('Current item is not valid or is null');
+              }
+            }
+          } catch (error) {
+            console.error('Error getting object data: ', error);
+          }
+        },
+        async signup() {
+          const email = prompt('Enter your email:');
+          const password = prompt('Enter your password:');
+          firebase.auth().createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+              const user = userCredential.user;
+              firebase.firestore().collection('users').doc(user.uid).set({
+                email: user.email,
+                inventory: []
+              }).then(() => {
+                alert('User object created in Firestore!');
+              }).catch((error) => {
+                console.error('Error creating user object in Firestore: ', error);
+              });
+            })
+            .catch((error) => {
+              alert(error.message);
+            });
+        },
+        async login() {
+          const email = prompt('Enter your email:');
+          const password = prompt('Enter your password:');
+          firebase.auth().signInWithEmailAndPassword(email, password)
+            .then(() => {
+              alert('Login successful!');
+              this.checkAuthState();
+            })
+            .catch((error) => {
+              alert(error.message);
+            });
+        },
+        mintItem() {
+          if (this.currentItem) {
+            this.addItemToInventory(this.currentItem);
+          } else {
+            alert('No item is currently set to mint.');
+          }
+        },
+        async logout() {
+          firebase.auth().signOut().then(() => {
+            alert('Logout successful!');
+            document.getElementById('signup-button').style.display = 'block';
+            document.getElementById('login-button').style.display = 'block';
+            document.getElementById('logout-button').style.display = 'none';
+          }).catch((error) => {
+            alert(error.message);
+          });
+        },
+        checkAuthState() {
+          firebase.auth().onAuthStateChanged((user) => {
+            if (user && document.getElementById("mySidebar").style.width !== "0px") {
+              document.getElementById('logout-button').style.display = 'block';
+            } else {
+              document.getElementById('logout-button').style.display = 'none';
+            }
+          });
+        },
+        handleMarkerEvents(markerId, entityId) {
+          const marker = document.getElementById(markerId);
+          marker.addEventListener('markerFound', async () => {
+            this.allowClicks = true;
+            this.currentItem = {
+              name: `3D Object ${markerId}`,
+              description: `This is a 3D object ${markerId} from the AR experience.`,
+              type: '3d-object',
+              src: document.getElementById(entityId).getAttribute('gltf-model'),
+              addedAt: new Date().toISOString()
+            };
+            const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
+            await this.fetchMarkerData(markerDataId);
+          });
 
-      document.getElementById(entityId).addEventListener('click', async (evt) => {
-        if (allowClicks.value) {
-          const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-          await fetchMarkerData(markerDataId);
-          const infoBox = document.getElementById('info-box');
-          infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
+          marker.addEventListener('markerLost', () => {
+            this.allowClicks = false;
+            this.currentItem = null;
+          });
+
+          document.getElementById(entityId).addEventListener('click', async () => {
+            if (this.allowClicks) {
+              const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
+              await this.fetchMarkerData(markerDataId);
+              const infoBox = document.getElementById('info-box');
+              infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
+            }
+          });
+        },
+        async loadMarkers() {
+          const scene = document.querySelector('a-scene');
+          const objectsRef = firebase.firestore().collection('objects');
+          try {
+            const snapshot = await objectsRef.get();
+            if (snapshot.empty) {
+              this.defaultSceneVisible = true;
+            } else {
+              this.defaultSceneVisible = false;
+              snapshot.forEach(doc => {
+                const data = doc.data();
+                const marker = document.createElement('a-marker');
+                marker.setAttribute('preset', 'custom');
+                marker.setAttribute('type', 'pattern');
+                marker.setAttribute('url', data.patternUrl);
+                marker.setAttribute('id', `marker-${doc.id}`);
+
+                const entity = document.createElement('a-entity');
+                entity.setAttribute('gltf-model', data.modelUrl);
+                entity.setAttribute('scale', data.scale);
+                entity.setAttribute('rotation', data.rotation);
+                entity.setAttribute('position', data.position);
+                entity.setAttribute('id', `entity-${doc.id}`);
+                entity.classList.add('clickable');
+                entity.setAttribute('gesture-handler', '');
+
+                marker.appendChild(entity);
+                scene.appendChild(marker);
+                this.handleMarkerEvents(`marker-${doc.id}`, `entity-${doc.id}`);
+              });
+            }
+          } catch (error) {
+            console.error('Error loading markers: ', error);
+          }
         }
-      });
-    };
+      },
+      mounted() {
+        this.loadMarkers();
 
-    const loadMarkers = async () => {
-      const scene = document.querySelector('a-scene');
-      const objectsRef = collection(db, 'objects');
-      try {
-        console.log('Attempting to load markers');
-        const user = auth.currentUser;
-        if (!user) {
-          console.error('User is not authenticated');
-          alert('Please log in to view the AR markers.');
-          return;
-        }
-        console.log('User authenticated:', user.uid);
-
-        const snapshot = await getDocs(objectsRef);
-        if (snapshot.empty) {
-          console.log('No markers found in Firestore');
-          defaultSceneVisible.value = true;
-        } else {
-          console.log('Markers found:', snapshot.size);
-          defaultSceneVisible.value = false;
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            console.log('Marker data:', data);
-            const marker = document.createElement('a-marker');
-            marker.setAttribute('preset', 'custom');
-            marker.setAttribute('type', 'pattern');
-            marker.setAttribute('url', data.patternUrl);
-            marker.setAttribute('id', `marker-${doc.id}`);
-
-            const entity = document.createElement('a-entity');
-            entity.setAttribute('gltf-model', data.modelUrl);
-            entity.setAttribute('scale', data.scale);
-            entity.setAttribute('rotation', data.rotation);
-            entity.setAttribute('position', data.position);
-            entity.setAttribute('id', `entity-${doc.id}`);
-            entity.classList.add('clickable');
-            entity.setAttribute('gesture-handler', '');
-
-            marker.appendChild(entity);
-            scene.appendChild(marker);
-            handleMarkerEvents(`marker-${doc.id}`, `entity-${doc.id}`);
+        const loader = document.getElementById('loader');
+        const myapt = document.getElementById('myapt');
+        if (myapt) {
+          myapt.addEventListener('model-loading', () => {
+            loader.style.display = 'block';
+            myapt.setAttribute('visible', 'false');
+          });
+          myapt.addEventListener('model-loaded', () => {
+            loader.style.display = 'none';
+            myapt.setAttribute('visible', 'true');
           });
         }
-      } catch (error) {
-        console.error('Error loading markers: ', error);
+
+        this.checkAuthState();
       }
-    };
-
-    onMounted(() => {
-      loadMarkers();
-
-      const loader = document.getElementById('loader');
-      const myapt = document.getElementById('myapt');
-      if (myapt) {
-        myapt.addEventListener('model-loading', () => {
-          loader.style.display = 'block';
-          myapt.setAttribute('visible', 'false');
-        });
-        myapt.addEventListener('model-loaded', () => {
-          loader.style.display = 'none';
-          myapt.setAttribute('visible', 'true');
-        });
-      } else {
-        console.warn('Element #myapt not found');
-      }
-
-      checkAuthState();
     });
 
-    return {
-      openNav,
-      closeNav,
-      signup,
-      login,
-      logout,
-      mintItem,
-      displayInventory,
-      defaultSceneVisible
-    };
-  }
-};
-</script>
-
-<style>
-/* Include your styles here */
-</style>
+    app.mount('#app');
+  </script>
+</body>
