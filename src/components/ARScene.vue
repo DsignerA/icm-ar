@@ -260,9 +260,9 @@ export default {
       auth.onAuthStateChanged((user) => {
         if (user && document.getElementById("mySidebar").style.width !== "0px") {
           document.getElementById('logout-button').style.display = 'block';
-        } /*else {
+        } else {
           document.getElementById('logout-button').style.display = 'none';
-        }*/
+        }
       });
     };
 
@@ -300,13 +300,24 @@ export default {
       const scene = document.querySelector('a-scene');
       const objectsRef = collection(db, 'objects');
       try {
+        console.log('Attempting to load markers');
+        const user = auth.currentUser;
+        if (!user) {
+          console.error('User is not authenticated');
+          return;
+        }
+        console.log('User authenticated:', user.uid);
+
         const snapshot = await getDocs(objectsRef);
         if (snapshot.empty) {
+          console.log('No markers found in Firestore');
           defaultSceneVisible.value = true;
         } else {
+          console.log('Markers found:', snapshot.size);
           defaultSceneVisible.value = false;
           snapshot.forEach(doc => {
             const data = doc.data();
+            console.log('Marker data:', data);
             const marker = document.createElement('a-marker');
             marker.setAttribute('preset', 'custom');
             marker.setAttribute('type', 'pattern');
