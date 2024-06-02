@@ -238,8 +238,309 @@
   </a-scene>
 
   <script>
-    // Any initialization scripts if needed
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Firebase configuration and initialization
+      const firebaseConfig = {
+        apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
+        authDomain: "arwallet-bfd5e.firebaseapp.com",
+        projectId: "arwallet-bfd5e",
+        storageBucket: "arwallet-bfd5e.appspot.com",
+        messagingSenderId: "865160955063",
+        appId: "1:865160955063:web:e82191fc0207faf1fcb932",
+        measurementId: "G-LV113YTC27"
+      };
+  
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+  
+      let currentItem = null;
+  
+      // Function to add item to inventory
+      function addItemToInventory(item) {
+          const user = auth.currentUser;
+          if (user) {
+              const userRef = db.collection('users').doc(user.uid);
+              userRef.update({
+                  inventory: firebase.firestore.FieldValue.arrayUnion(item)
+              }).then(() => {
+                  alert('Item added to inventory!');
+              }).catch((error) => {
+                  console.error('Error adding item to inventory: ', error);
+              });
+          } else {
+              alert('Please log in to add items to your inventory.');
+          }
+      }
+  
+      // Function to display inventory
+      function displayInventory() {
+          const user = auth.currentUser;
+          if (user) {
+              const userRef = db.collection('users').doc(user.uid);
+              userRef.get().then((doc) => {
+                  if (doc.exists) {
+                      const inventory = doc.data().inventory || [];
+                      const inventoryIcons = document.getElementById('inventory-icons');
+                      inventoryIcons.innerHTML = '';
+  
+                      inventory.forEach(item => {
+                          let iconElement;
+                          switch (item.type) {
+                              case 'info':
+                              case 'image':
+                                  iconElement = document.createElement('img');
+                                  iconElement.src = item.src;
+                                  iconElement.classList.add('inventory-icon');
+                                  inventoryIcons.appendChild(iconElement);
+                                  break;
+                              case '3d-object':
+                                  iconElement = document.createElement('model-viewer');
+                                  iconElement.setAttribute('src', item.src);
+                                  iconElement.setAttribute('alt', '3D Object');
+                                  iconElement.setAttribute('camera-controls', '');
+                                  iconElement.setAttribute('auto-rotate', '');
+                                  iconElement.setAttribute('class', 'inventory-icon');
+                                  inventoryIcons.appendChild(iconElement);
+                                  break;
+                              case 'video':
+                                  iconElement = document.createElement('video');
+                                  iconElement.src = item.src;
+                                  iconElement.classList.add('inventory-icon');
+                                  iconElement.setAttribute('autoplay', 'true');
+                                  iconElement.setAttribute('muted', 'true');
+                                  inventoryIcons.appendChild(iconElement);
+                                  break;
+                              case 'gif':
+                                  iconElement = document.createElement('img');
+                                  iconElement.src = item.src;
+                                  iconElement.classList.add('inventory-icon');
+                                  inventoryIcons.appendChild(iconElement);
+                                  break;
+                              default:
+                                  break;
+                          }
+                      });
+                  } else {
+                      console.log("No such document!");
+                  }
+              }).catch((error) => {
+                  console.log("Error getting document:", error);
+              });
+          } else {
+              alert('Please log in to view your inventory.');
+          }
+      }
+  
+      // Function to display item data in the info box
+      function displayItemData(item) {
+          if (item) {
+              document.getElementById('info-name').innerText = item.name || '';
+              document.getElementById('info-description').innerText = item.description || '';
+              document.getElementById('info-addedAt').innerText = item.addedAt || '';
+          }
+      }
+  
+      // Function to check and fetch marker data from Firestore or use default data
+      function fetchMarkerData(markerId) {
+          const objectRef = db.collection('objects').doc(markerId);
+          objectRef.get().then((doc) => {
+              if (doc.exists) {
+                  const data = doc.data();
+                  if (data) {
+                      displayItemData(data);
+                  } else {
+                      console.error('No data found in document:', markerId);
+                  }
+              } else {
+                  console.log("No data found in Firestore for marker:", markerId);
+                  if (currentItem) {
+                      displayItemData(currentItem);
+                      // Push the default data to Firestore
+                      objectRef.set(currentItem).then(() => {
+                          console.log("Default data pushed to Firestore for marker:", markerId);
+                      }).catch((error) => {
+                          console.error('Error adding default data to Firestore: ', error);
+                      });
+                  } else {
+                      console.error('Current item is not valid or is null');
+                  }
+              }
+          }).catch((error) => {
+              console.error('Error getting object data: ', error);
+          });
+      }
+  
+      // Event listener for sign-up button
+      document.getElementById('signup-button').addEventListener('click', () => {
+          const email = prompt('Enter your email:');
+          const password = prompt('Enter your password:');
+          auth.createUserWithEmailAndPassword(email, password)
+              .then((userCredential) => {
+                  const user = userCredential.user;
+                  // Create a user object in Firestore with an empty inventory
+                  db.collection('users').doc(user.uid).set({
+                      email: user.email,
+                      inventory: []
+                  }).then(() => {
+                      alert('User object created in Firestore!');
+                  }).catch((error) => {
+                      console.error('Error creating user object in Firestore: ', error);
+                  });
+              })
+              .catch((error) => {
+                  alert(error.message);
+              });
+      });
+  
+      // Event listener for login button
+      document.getElementById('login-button').addEventListener('click', () => {
+          const user = auth.currentUser;
+          if (user) {
+              alert(`You are already logged in as ${user.email}`);
+          } else {
+              const email = prompt('Enter your email:');
+              const password = prompt('Enter your password:');
+              auth.signInWithEmailAndPassword(email, password)
+                  .then((userCredential) => {
+                      alert('Login successful!');
+                      checkAuthState();
+                  })
+                  .catch((error) => {
+                      alert(error.message);
+                  });
+          }
+      });
+  
+      // Event listener for mint button
+      document.getElementById('mint-button').addEventListener('click', () => {
+          if (currentItem) {
+              addItemToInventory(currentItem);
+          } else {
+              alert('No item is currently set to mint.');
+          }
+      });
+  
+      // Event listener for view inventory button
+      document.getElementById('view-inventory-button').addEventListener('click', () => {
+          displayInventory();
+      });
+  
+      let allow_clicks = false;
+      document.querySelector("#scene").addEventListener('markerFound', (evt) => {
+          allow_clicks = true;
+      });
+  
+      document.querySelector("#scene").addEventListener('markerLost', (evt) => {
+          allow_clicks = false;
+      });
+  
+      // Function to handle marker found and lost events
+      function handleMarkerEvents(markerId, entityId) {
+          const marker = document.getElementById(markerId);
+          marker.addEventListener('markerFound', (e) => {
+              console.log(`found ${markerId}`);
+              currentItem = {
+                  name: `3D Object ${markerId}`,
+                  description: `This is a 3D object ${markerId} from the AR experience.`,
+                  type: '3d-object',
+                  src: document.getElementById(entityId).getAttribute('gltf-model'),
+                  addedAt: new Date().toISOString()
+              };
+              // Fetch marker data from Firestore or use default data
+              const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
+              fetchMarkerData(markerDataId);
+          });
+  
+          marker.addEventListener('markerLost', (e) => {
+              console.log(`lost ${markerId}`);
+              currentItem = null;
+          });
+  
+          document.getElementById(entityId).addEventListener('click', (evt) => {
+              if (allow_clicks) {
+                  const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
+                  fetchMarkerData(markerDataId);
+                  // Toggle info box visibility
+                  const infoBox = document.getElementById('info-box');
+                  infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
+              }
+          });
+      }
+  
+      handleMarkerEvents('marker1', 'myapt1');
+      handleMarkerEvents('marker2', 'myapt2');
+  
+      // Loader visibility toggling and model loading handling
+      const loader = document.getElementById('loader');
+      const myapt = document.getElementById('myapt');
+      myapt.addEventListener('model-loading', () => {
+          loader.style.display = 'block';
+          myapt.setAttribute('visible', 'false');
+      });
+      myapt.addEventListener('model-loaded', () => {
+          loader.style.display = 'none';
+          myapt.setAttribute('visible', 'true');
+      });
+  
+      function myFunction() {
+          var x = document.getElementById("buttonz");
+          if (x.style.visibility === "hidden") {
+              x.style.visibility = "visible";
+          } else {
+              x.style.visibility = "hidden";
+          }
+      }
+  
+      document.querySelector("#toggle-vid").addEventListener('change', (e) => {
+          if (allow_clicks) {
+              var videoElement = document.getElementById('hidevid');
+              videoElement.setAttribute('visible', e.target.checked);
+              console.log('Video visibility toggled:', e.target.checked ? 'On' : 'Off');
+          }
+      });
+  
+      document.getElementById("toggle-sound").addEventListener("change", (e) => {
+          var video = document.querySelector('#mivideo');
+          video.muted = !e.target.checked;
+          console.log('Sound toggled:', e.target.checked ? 'On' : 'Off');
+      });
+  
+      document.getElementById("btn3").addEventListener("click", (e) => {
+          document.querySelector('#mivideo').pause();
+      });
+  
+      // Event listener for logout button
+      document.getElementById('logout-button').addEventListener('click', () => {
+          auth.signOut().then(() => {
+              alert('Logout successful!');
+              document.getElementById('signup-button').style.display = 'block';
+              document.getElementById('login-button').style.display = 'block';
+              document.getElementById('logout-button').style.display = 'none';
+          }).catch((error) => {
+              alert(error.message);
+          });
+      });
+  
+      // Function to check authentication state and update UI accordingly
+      function checkAuthState() {
+          auth.onAuthStateChanged((user) => {
+              if (user && document.getElementById("mySidebar").style.width !== "0px") {
+                  console.log("User is logged in and sidebar is open.");
+                  document.getElementById('logout-button').style.display = 'block';
+              } else {
+                  console.log("User is not logged in or sidebar is closed.");
+                  document.getElementById('logout-button').style.display = 'none';
+              }
+          });
+      }
+  
+      // Initial check on page load
+      checkAuthState();
+  });
   </script>
-  <!-- built files will be auto injected -->
+  
 </body>
 </html>
