@@ -1,10 +1,7 @@
-// src/firebase.js
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, collection } from 'firebase/firestore';
-import { getAnalytics } from 'firebase/analytics';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
   authDomain: "arwallet-bfd5e.firebaseapp.com",
@@ -15,10 +12,8 @@ const firebaseConfig = {
   measurementId: "G-LV113YTC27"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { auth, db, collection, analytics, signInWithEmailAndPassword, createUserWithEmailAndPassword };
+export { auth, db };
