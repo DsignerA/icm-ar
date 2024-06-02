@@ -199,14 +199,43 @@
   </noscript>
   <div id="app"></div>
 
+  <!-- Assets and Markers for A-Frame -->
+  <a-scene embedded arjs="debugUIEnabled: false;">
+    <a-assets>
+      <a-asset-item id="apt1" src="https://rvanfts.com/ar/1-branded-chips/scene.gltf"></a-asset-item>
+      <a-asset-item id="apt2" src="https://rvanfts.com/ar/ps5/scene.gltf"></a-asset-item>
+    </a-assets>
 
-  <!-- Assets for A-Frame -->
-  <a-scene>
-  <a-assets>
-    <a-asset-item id="apt1" src="https://rvanfts.com/ar/1-branded-chips/scene.gltf"></a-asset-item>
-    <a-asset-item id="apt2" src="https://rvanfts.com/ar/ps5/scene.gltf"></a-asset-item>
-  </a-assets>
-</a-scene>
+    <a-marker preset="hiro" id="marker1">
+      <a-entity
+        raycaster="objects: .clickable"
+        position="0 0 0"
+        id="myapt1"
+        scale="1 1 1"
+        rotation="-50 0 0"
+        gltf-model="#apt1"
+        class="clickable"
+        visible="true"
+        gesture-handler
+      ></a-entity>
+    </a-marker>
+
+    <a-marker type="pattern" url="https://rvanfts.com/ar/1patterns/main-ar.patt" id="marker2">
+      <a-entity
+        raycaster="objects: .clickable"
+        position="0 0 0"
+        id="myapt2"
+        scale=".01 .01 .01"
+        rotation="-50 0 0"
+        gltf-model="#apt2"
+        class="clickable"
+        visible="true"
+        gesture-handler
+      ></a-entity>
+    </a-marker>
+
+    <a-entity camera></a-entity>
+  </a-scene>
 
   <script>
     // Any initialization scripts if needed
