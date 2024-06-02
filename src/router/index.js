@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import MainApp from '../pages/MainApp.vue';
+//import MainApp from '../pages/MainApp.vue';
+import ARScene from '../components/ARScene.vue';
 
 const routes = [
   {
     path: '/',
     name: 'MainApp',
-    component: MainApp
+    component: ARScene
   }
 ];
 

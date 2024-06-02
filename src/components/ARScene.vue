@@ -72,33 +72,43 @@
 </template>
 
 <script>
-import { onMounted } from 'vue';
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
-import { initializeApp } from "firebase/app";
+import { onMounted, ref } from 'vue';
+import { auth, db } from '../firebaseConfig';
+import { 
+  onAuthStateChanged, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut 
+} from "firebase/auth";
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  arrayUnion, 
+  collection, 
+  getDocs 
+} from "firebase/firestore";
 
 export default {
-  data() {
-    return {
-      currentItem: null,
-      allowClicks: false,
-      defaultSceneVisible: true,
-      auth: null,
-      db: null
-    };
-  },
-  methods: {
-    openNav() {
+  setup() {
+    const currentItem = ref(null);
+    const allowClicks = ref(false);
+    const defaultSceneVisible = ref(true);
+
+    const openNav = () => {
       document.getElementById("mySidebar").style.width = "125px";
-      this.checkAuthState();
-    },
-    closeNav() {
+      checkAuthState();
+    };
+
+    const closeNav = () => {
       document.getElementById("mySidebar").style.width = "0";
-    },
-    async addItemToInventory(item) {
-      const user = this.auth.currentUser;
+    };
+
+    const addItemToInventory = async (item) => {
+      const user = auth.currentUser;
       if (user) {
-        const userRef = doc(this.db, 'users', user.uid);
+        const userRef = doc(db, 'users', user.uid);
         try {
           await updateDoc(userRef, {
             inventory: arrayUnion(item)
@@ -110,11 +120,12 @@ export default {
       } else {
         alert('Please log in to add items to your inventory.');
       }
-    },
-    async displayInventory() {
-      const user = this.auth.currentUser;
+    };
+
+    const displayInventory = async () => {
+      const user = auth.currentUser;
       if (user) {
-        const userRef = doc(this.db, 'users', user.uid);
+        const userRef = doc(db, 'users', user.uid);
         try {
           const docSnap = await getDoc(userRef);
           if (docSnap.exists()) {
@@ -168,30 +179,32 @@ export default {
       } else {
         alert('Please log in to view your inventory.');
       }
-    },
-    displayItemData(item) {
+    };
+
+    const displayItemData = (item) => {
       if (item) {
         document.getElementById('info-name').innerText = item.name || '';
         document.getElementById('info-description').innerText = item.description || '';
         document.getElementById('info-addedAt').innerText = item.addedAt || '';
       }
-    },
-    async fetchMarkerData(markerId) {
-      const objectRef = doc(this.db, 'objects', markerId);
+    };
+
+    const fetchMarkerData = async (markerId) => {
+      const objectRef = doc(db, 'objects', markerId);
       try {
         const docSnap = await getDoc(objectRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data) {
-            this.displayItemData(data);
+            displayItemData(data);
           } else {
             console.error('No data found in document:', markerId);
           }
         } else {
           console.log("No data found in Firestore for marker:", markerId);
-          if (this.currentItem) {
-            this.displayItemData(this.currentItem);
-            await setDoc(objectRef, this.currentItem);
+          if (currentItem.value) {
+            displayItemData(currentItem.value);
+            await setDoc(objectRef, currentItem.value);
             console.log("Default data pushed to Firestore for marker:", markerId);
           } else {
             console.error('Current item is not valid or is null');
@@ -200,66 +213,71 @@ export default {
       } catch (error) {
         console.error('Error getting object data: ', error);
       }
-    },
-    async signup() {
+    };
+
+    const signup = async () => {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      createUserWithEmailAndPassword(this.auth, email, password)
-        .then(async (userCredential) => {
-          const user = userCredential.user;
-          await setDoc(doc(this.db, 'users', user.uid), {
-            email: user.email,
-            inventory: []
-          });
-          alert('User object created in Firestore!');
-        })
-        .catch((error) => {
-          alert(error.message);
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await setDoc(doc(db, 'users', user.uid), {
+          email: user.email,
+          inventory: []
         });
-    },
-    async login() {
+        alert('User object created in Firestore!');
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    const login = async () => {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      signInWithEmailAndPassword(this.auth, email, password)
-        .then(() => {
-          alert('Login successful!');
-          this.checkAuthState();
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
-    },
-    mintItem() {
-      if (this.currentItem) {
-        this.addItemToInventory(this.currentItem);
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert('Login successful!');
+        checkAuthState();
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    const mintItem = () => {
+      if (currentItem.value) {
+        addItemToInventory(currentItem.value);
       } else {
         alert('No item is currently set to mint.');
       }
-    },
-    async logout() {
-      signOut(this.auth).then(() => {
+    };
+
+    const logout = async () => {
+      try {
+        await signOut(auth);
         alert('Logout successful!');
         document.getElementById('signup-button').style.display = 'block';
         document.getElementById('login-button').style.display = 'block';
         document.getElementById('logout-button').style.display = 'none';
-      }).catch((error) => {
+      } catch (error) {
         alert(error.message);
-      });
-    },
-    checkAuthState() {
-      onAuthStateChanged(this.auth, (user) => {
+      }
+    };
+
+    const checkAuthState = () => {
+      onAuthStateChanged(auth, (user) => {
         if (user && document.getElementById("mySidebar").style.width !== "0px") {
           document.getElementById('logout-button').style.display = 'block';
         } else {
           document.getElementById('logout-button').style.display = 'none';
         }
       });
-    },
-    handleMarkerEvents(markerId, entityId) {
+    };
+
+    const handleMarkerEvents = (markerId, entityId) => {
       const marker = document.getElementById(markerId);
       marker.addEventListener('markerFound', async () => {
-        this.allowClicks = true;
-        this.currentItem = {
+        allowClicks.value = true;
+        currentItem.value = {
           name: `3D Object ${markerId}`,
           description: `This is a 3D object ${markerId} from the AR experience.`,
           type: '3d-object',
@@ -267,32 +285,33 @@ export default {
           addedAt: new Date().toISOString()
         };
         const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-        await this.fetchMarkerData(markerDataId);
+        await fetchMarkerData(markerDataId);
       });
 
       marker.addEventListener('markerLost', () => {
-        this.allowClicks = false;
-        this.currentItem = null;
+        allowClicks.value = false;
+        currentItem.value = null;
       });
 
       document.getElementById(entityId).addEventListener('click', async () => {
-        if (this.allowClicks) {
+        if (allowClicks.value) {
           const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-          await this.fetchMarkerData(markerDataId);
+          await fetchMarkerData(markerDataId);
           const infoBox = document.getElementById('info-box');
           infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
         }
       });
-    },
-    async loadMarkers() {
+    };
+
+    const loadMarkers = async () => {
       const scene = document.querySelector('a-scene');
-      const objectsRef = collection(this.db, 'objects');
+      const objectsRef = collection(db, 'objects');
       try {
         const snapshot = await getDocs(objectsRef);
         if (snapshot.empty) {
-          this.defaultSceneVisible = true;
+          defaultSceneVisible.value = true;
         } else {
-          this.defaultSceneVisible = false;
+          defaultSceneVisible.value = false;
           snapshot.forEach(doc => {
             const data = doc.data();
             const marker = document.createElement('a-marker');
@@ -312,32 +331,16 @@ export default {
 
             marker.appendChild(entity);
             scene.appendChild(marker);
-            this.handleMarkerEvents(`marker-${doc.id}`, `entity-${doc.id}`);
+            handleMarkerEvents(`marker-${doc.id}`, `entity-${doc.id}`);
           });
         }
       } catch (error) {
         console.error('Error loading markers: ', error);
       }
-    }
-  },
-  mounted() {
+    };
+
     onMounted(() => {
-      const firebaseConfig = {
-        apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
-        authDomain: "arwallet-bfd5e.firebaseapp.com",
-        projectId: "arwallet-bfd5e",
-        storageBucket: "arwallet-bfd5e.appspot.com",
-        messagingSenderId: "865160955063",
-        appId: "1:865160955063:web:e82191fc0207faf1fcb932",
-        measurementId: "G-LV113YTC27"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      this.auth = getAuth(app);
-      this.db = getFirestore(app);
-
-      this.loadMarkers();
+      loadMarkers();
 
       const loader = document.getElementById('loader');
       const myapt = document.getElementById('myapt');
@@ -352,8 +355,18 @@ export default {
         });
       }
 
-      this.checkAuthState();
+      checkAuthState();
     });
+
+    return {
+      openNav,
+      closeNav,
+      signup,
+      login,
+      mintItem,
+      logout,
+      displayInventory
+    };
   }
 };
 </script>
