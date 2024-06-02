@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Sidebar />
+    <Sidebar ref="sidebar" />
     <button class="icon-button" style="left: 10px;" @click="openNav"><i class="fas fa-bars"></i></button>
     <button class="icon-button" style="right: 10px;" id="view-inventory-button"><i class="fas fa-box"></i></button>
     <button class="icon-button logout-button" id="logout-button"><i class="fas fa-sign-out-alt"></i></button>
@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import { ref } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import ARScene from './components/ARScene.vue';
 
@@ -25,10 +26,19 @@ export default {
     Sidebar,
     ARScene,
   },
-  methods: {
-    openNav() {
-      this.$refs.sidebar.openNav();
-    },
+  setup() {
+    const sidebar = ref(null);
+
+    const openNav = () => {
+      if (sidebar.value) {
+        sidebar.value.openNav();
+      }
+    };
+
+    return {
+      sidebar,
+      openNav,
+    };
   },
 };
 </script>
