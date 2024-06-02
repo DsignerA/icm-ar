@@ -206,10 +206,71 @@
       <a-asset-item id="apt2" src="https://rvanfts.com/ar/ps5/scene.gltf"></a-asset-item>
     </a-assets>
 
+    <a-marker preset="hiro" id="marker1">
+      <a-entity
+        raycaster="objects: .clickable"
+        position="0 0 0"
+        id="myapt1"
+        scale="1 1 1"
+        rotation="-50 0 0"
+        gltf-model="#apt1"
+        class="clickable"
+        visible="true"
+        gesture-handler
+      ></a-entity>
+    </a-marker>
+
+    <a-marker type="pattern" url="https://rvanfts.com/ar/1patterns/main-ar.patt" id="marker2">
+      <a-entity
+        raycaster="objects: .clickable"
+        position="0 0 0"
+        id="myapt2"
+        scale=".01 .01 .01"
+        rotation="-50 0 0"
+        gltf-model="#apt2"
+        class="clickable"
+        visible="true"
+        gesture-handler
+      ></a-entity>
+    </a-marker>
+
+    <a-entity camera></a-entity>
   </a-scene>
 
+  <div id="info-box">
+    <p id="info-name"></p>
+    <p id="info-description"></p>
+    <p id="info-addedAt"></p>
+    <button class="button" id="mint-button">Collect</button>
+  </div>
+
+  <div id="loader" class="loader" style="display: none;"></div>
+
   <script>
-    // Any initialization scripts if needed
+    let allow_clicks = true;
+
+    document.querySelector("#myapt1").addEventListener('click', function(evt) {
+      if (allow_clicks) {
+        const markerDataId = encodeURIComponent(this.getAttribute('gltf-model'));
+        fetchMarkerData(markerDataId);
+        const infoBox = document.getElementById('info-box');
+        infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
+      }
+    });
+
+    document.querySelector("#myapt2").addEventListener('click', function(evt) {
+      if (allow_clicks) {
+        const markerDataId = encodeURIComponent(this.getAttribute('gltf-model'));
+        fetchMarkerData(markerDataId);
+        const infoBox = document.getElementById('info-box');
+        infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
+      }
+    });
+
+    function fetchMarkerData(markerDataId) {
+      console.log(`Fetching data for marker: ${markerDataId}`);
+      // Add your logic to fetch marker data here
+    }
   </script>
   <!-- built files will be auto injected -->
 </body>

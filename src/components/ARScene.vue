@@ -18,37 +18,6 @@
         <a-asset-item id="apt2" src="https://rvanfts.com/ar/ps5/scene.gltf" @loaded="onAssetLoaded('apt2')" @error="onAssetError('apt2')"></a-asset-item>
       </a-assets>
 
-      <a-marker preset="hiro" id="marker1" @markerFound="onMarkerFound('marker1')" @markerLost="onMarkerLost('marker1')">
-        <a-entity
-          raycaster="objects: .clickable"
-          position="0 0 0"
-          id="myapt1"
-          scale="1 1 1"
-          rotation="-50 0 0"
-          gltf-model="#apt1"
-          class="clickable"
-          visible="true"
-          @model-loaded="onModelLoaded('myapt1')"
-          @model-error="onModelError('myapt1')"
-          gesture-handler
-        ></a-entity>
-      </a-marker>
-
-      <a-marker type="pattern" url="https://rvanfts.com/ar/1patterns/main-ar.patt" id="marker2" @markerFound="onMarkerFound('marker2')" @markerLost="onMarkerLost('marker2')">
-        <a-entity
-          raycaster="objects: .clickable"
-          position="0 0 0"
-          id="myapt2"
-          scale=".01 .01 .01"
-          rotation="-50 0 0"
-          gltf-model="#apt2"
-          class="clickable"
-          visible="true"
-          @model-loaded="onModelLoaded('myapt2')"
-          @model-error="onModelError('myapt2')"
-          gesture-handler
-        ></a-entity>
-      </a-marker>
 
       <a-entity camera></a-entity>
     </a-scene>
