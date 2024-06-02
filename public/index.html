@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -257,7 +259,20 @@
   <div id="loader" class="loader" style="display: none;"></div>
 
   <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
+      authDomain: "arwallet-bfd5e.firebaseapp.com",
+      projectId: "arwallet-bfd5e",
+      storageBucket: "arwallet-bfd5e.appspot.com",
+      messagingSenderId: "865160955063",
+      appId: "1:865160955063:web:e82191fc0207faf1fcb932",
+      measurementId: "G-LV113YTC27"
+    };
 
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
     let allow_clicks = true;
     let currentItem = null;
@@ -284,7 +299,6 @@
           console.log("No data found in Firestore for marker:", markerId);
           if (currentItem) {
             displayItemData(currentItem);
-            // Push the default data to Firestore
             objectRef.set(currentItem).then(() => {
               console.log("Default data pushed to Firestore for marker:", markerId);
             }).catch((error) => {
@@ -506,6 +520,5 @@
     }
 
     checkAuthState();
-  </script>
-</body>
-
+  </script></body>
+</html>
