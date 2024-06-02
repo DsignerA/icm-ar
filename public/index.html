@@ -199,8 +199,19 @@
   </noscript>
   <div id="app"></div>
 
-  <!-- Assets and Markers for A-Frame -->
-  <a-scene embedded arjs="debugUIEnabled: false;">
+  <a-scene
+  loading-screen="dotsColor: white; backgroundColor: black"
+  gltf-model="dracoDecoderPath: https://rvanfts.com/draco-master/javascript/;"
+  id="scene"
+  cursor="fuse: false; rayOrigin: mouse;"
+  embedded
+  arjs="debugUIEnabled: false;"
+  vr-mode-ui="enabled: false"
+  artoolkit="sourceType: webcam; detectionMode: mono; maxDetectionRate: 30; canvasWidth: 240; canvasHeight: 180"
+  ar-template
+  renderer="logarithmicDepthBuffer: false;"
+  gesture-detector
+>
     <a-assets>
       <a-asset-item id="apt1" src="https://rvanfts.com/ar/1-branded-chips/scene.gltf"></a-asset-item>
       <a-asset-item id="apt2" src="https://rvanfts.com/ar/ps5/scene.gltf"></a-asset-item>
