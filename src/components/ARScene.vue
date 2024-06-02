@@ -73,7 +73,7 @@
 
 <script>
 import { onMounted, ref } from 'vue';
-import { auth, db } from '../firebaseConfig';
+import { auth, db } from '../firebase';
 import { 
   onAuthStateChanged, 
   createUserWithEmailAndPassword, 
