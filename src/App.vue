@@ -46,6 +46,10 @@ document.addEventListener('DOMContentLoaded', function() {
     displayInventory();
   });
 
+  function displayInventory() {
+    // Your displayInventory logic here
+  }
+});
 </script>
 
 <style>
