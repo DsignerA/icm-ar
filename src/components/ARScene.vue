@@ -13,11 +13,7 @@
       renderer="logarithmicDepthBuffer: false;"
       gesture-detector
     >
-      <a-assets>
-        <a-asset-item id="apt1" src="https://rvanfts.com/ar/1-branded-chips/scene.gltf"></a-asset-item>
-        <a-asset-item id="apt2" src="https://rvanfts.com/ar/ps5/scene.gltf"></a-asset-item>
-      </a-assets>
-
+      <!-- Use the preloaded assets -->
       <a-marker preset="hiro" id="marker1">
         <a-entity
           raycaster="objects: .clickable"
