@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { auth, db } from '../firebase'; // Correct path to firebaseConfig.js
+import { auth, db,collection } from '../firebase'; // Correct path to firebaseConfig.js
 
 export default {
   name: 'ARScene',
