@@ -16,7 +16,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script type="module" src="./firebase.js"></script>
 
   <!-- Font Awesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -259,20 +258,7 @@
   <div id="loader" class="loader" style="display: none;"></div>
 
   <script>
-    // Initialize Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
-      authDomain: "arwallet-bfd5e.firebaseapp.com",
-      projectId: "arwallet-bfd5e",
-      storageBucket: "arwallet-bfd5e.appspot.com",
-      messagingSenderId: "865160955063",
-      appId: "1:865160955063:web:e82191fc0207faf1fcb932",
-      measurementId: "G-LV113YTC27"
-    };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
 
     let allow_clicks = true;
     let currentItem = null;
@@ -299,6 +285,7 @@
           console.log("No data found in Firestore for marker:", markerId);
           if (currentItem) {
             displayItemData(currentItem);
+            // Push the default data to Firestore
             objectRef.set(currentItem).then(() => {
               console.log("Default data pushed to Firestore for marker:", markerId);
             }).catch((error) => {
@@ -520,5 +507,6 @@
     }
 
     checkAuthState();
-  </script></body>
+  </script>
+</body>
 </html>
