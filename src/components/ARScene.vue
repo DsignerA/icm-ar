@@ -50,9 +50,7 @@ export default {
     console.log('ARScene component mounted.');
   },
 };
-document.getElementById('view-inventory-button').addEventListener('click', () => {
-      displayInventory();
-    });
+
 
 </script>
 

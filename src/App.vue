@@ -41,6 +41,10 @@ export default {
     };
   },
 };
+
+document.getElementById('view-inventory-button').addEventListener('click', () => {
+      displayInventory();
+    });
 </script>
 
 <style>
