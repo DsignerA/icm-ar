@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, collection } from 'firebase/firestore';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
 
@@ -20,4 +20,4 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { auth, db, analytics, signInWithEmailAndPassword, createUserWithEmailAndPassword };
+export { auth, db, collection, analytics, signInWithEmailAndPassword, createUserWithEmailAndPassword };
