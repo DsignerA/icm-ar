@@ -72,9 +72,10 @@
 </template>
 
 <script>
-import { auth, db } from '../firebase';
-import { collection, doc, getDoc, setDoc, updateDoc, arrayUnion, getDocs } from 'firebase/firestore';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { onMounted } from 'vue';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
 
 export default {
   data() {
@@ -82,6 +83,8 @@ export default {
       currentItem: null,
       allowClicks: false,
       defaultSceneVisible: true,
+      auth: null,
+      db: null
     };
   },
   methods: {
@@ -93,9 +96,9 @@ export default {
       document.getElementById("mySidebar").style.width = "0";
     },
     async addItemToInventory(item) {
-      const user = auth.currentUser;
+      const user = this.auth.currentUser;
       if (user) {
-        const userRef = doc(db, 'users', user.uid);
+        const userRef = doc(this.db, 'users', user.uid);
         try {
           await updateDoc(userRef, {
             inventory: arrayUnion(item)
@@ -109,9 +112,9 @@ export default {
       }
     },
     async displayInventory() {
-      const user = auth.currentUser;
+      const user = this.auth.currentUser;
       if (user) {
-        const userRef = doc(db, 'users', user.uid);
+        const userRef = doc(this.db, 'users', user.uid);
         try {
           const docSnap = await getDoc(userRef);
           if (docSnap.exists()) {
@@ -174,7 +177,7 @@ export default {
       }
     },
     async fetchMarkerData(markerId) {
-      const objectRef = doc(db, 'objects', markerId);
+      const objectRef = doc(this.db, 'objects', markerId);
       try {
         const docSnap = await getDoc(objectRef);
         if (docSnap.exists()) {
@@ -201,10 +204,10 @@ export default {
     async signup() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      createUserWithEmailAndPassword(auth, email, password)
+      createUserWithEmailAndPassword(this.auth, email, password)
         .then(async (userCredential) => {
           const user = userCredential.user;
-          await setDoc(doc(db, 'users', user.uid), {
+          await setDoc(doc(this.db, 'users', user.uid), {
             email: user.email,
             inventory: []
           });
@@ -217,7 +220,7 @@ export default {
     async login() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      signInWithEmailAndPassword(auth, email, password)
+      signInWithEmailAndPassword(this.auth, email, password)
         .then(() => {
           alert('Login successful!');
           this.checkAuthState();
@@ -234,7 +237,7 @@ export default {
       }
     },
     async logout() {
-      signOut(auth).then(() => {
+      signOut(this.auth).then(() => {
         alert('Logout successful!');
         document.getElementById('signup-button').style.display = 'block';
         document.getElementById('login-button').style.display = 'block';
@@ -244,7 +247,7 @@ export default {
       });
     },
     checkAuthState() {
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(this.auth, (user) => {
         if (user && document.getElementById("mySidebar").style.width !== "0px") {
           document.getElementById('logout-button').style.display = 'block';
         } else {
@@ -283,7 +286,7 @@ export default {
     },
     async loadMarkers() {
       const scene = document.querySelector('a-scene');
-      const objectsRef = collection(db, 'objects');
+      const objectsRef = collection(this.db, 'objects');
       try {
         const snapshot = await getDocs(objectsRef);
         if (snapshot.empty) {
@@ -318,22 +321,39 @@ export default {
     }
   },
   mounted() {
-    this.loadMarkers();
+    onMounted(() => {
+      const firebaseConfig = {
+        apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
+        authDomain: "arwallet-bfd5e.firebaseapp.com",
+        projectId: "arwallet-bfd5e",
+        storageBucket: "arwallet-bfd5e.appspot.com",
+        messagingSenderId: "865160955063",
+        appId: "1:865160955063:web:e82191fc0207faf1fcb932",
+        measurementId: "G-LV113YTC27"
+      };
 
-    const loader = document.getElementById('loader');
-    const myapt = document.getElementById('myapt');
-    if (myapt) {
-      myapt.addEventListener('model-loading', () => {
-        loader.style.display = 'block';
-        myapt.setAttribute('visible', 'false');
-      });
-      myapt.addEventListener('model-loaded', () => {
-        loader.style.display = 'none';
-        myapt.setAttribute('visible', 'true');
-      });
-    }
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      this.auth = getAuth(app);
+      this.db = getFirestore(app);
 
-    this.checkAuthState();
+      this.loadMarkers();
+
+      const loader = document.getElementById('loader');
+      const myapt = document.getElementById('myapt');
+      if (myapt) {
+        myapt.addEventListener('model-loading', () => {
+          loader.style.display = 'block';
+          myapt.setAttribute('visible', 'false');
+        });
+        myapt.addEventListener('model-loaded', () => {
+          loader.style.display = 'none';
+          myapt.setAttribute('visible', 'true');
+        });
+      }
+
+      this.checkAuthState();
+    });
   }
 };
 </script>
