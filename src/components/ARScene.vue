@@ -6,11 +6,11 @@
     <div id="mySidebar" class="sidebar">
       <a href="javascript:void(0)" class="closebtn" @click="closeNav">&times;</a>
       <div id="auth-buttons">
-        <button class="button" @click="signup">Sign Up</button>
-        <button class="button" @click="login">Login</button>
+        <button class="button" id="signup-button" @click="signup">Sign Up</button>
+        <button class="button" id="login-button" @click="login">Login</button>
       </div>
     </div>
-    <button class="icon-button logout-button" @click="logout"><i class="fas fa-sign-out-alt"></i></button>
+    <button class="icon-button logout-button" id="logout-button" @click="logout"><i class="fas fa-sign-out-alt"></i></button>
     <div id="inventory-icons"></div>
 
     <div style='margin: 0px; overflow: hidden;'>
@@ -44,7 +44,8 @@
 </template>
 
 <script>
-import { auth, db, collection, signInWithEmailAndPassword, createUserWithEmailAndPassword } from '../firebase';
+import { auth, db, collection, signInWithEmailAndPassword, createUserWithEmailAndPassword } from '../firebaseConfig';
+import { getDocs } from 'firebase/firestore';
 
 export default {
   name: 'ARScene',
@@ -206,107 +207,4 @@ export default {
         await auth.signOut();
         alert('Logout successful!');
         document.getElementById('signup-button').style.display = 'block';
-        document.getElementById('login-button').style.display = 'block';
-        document.getElementById('logout-button').style.display = 'none';
-      } catch (error) {
-        alert(error.message);
-      }
-    },
-    checkAuthState() {
-      auth.onAuthStateChanged((user) => {
-        if (user && document.getElementById("mySidebar").style.width !== "0px") {
-          document.getElementById('logout-button').style.display = 'block';
-        } else {
-          document.getElementById('logout-button').style.display = 'none';
-        }
-      });
-    },
-    handleMarkerEvents(markerId, entityId) {
-      const marker = document.getElementById(markerId);
-      marker.addEventListener('markerFound', async () => {
-        this.allowClicks = true;
-        this.currentItem = {
-          name: `3D Object ${markerId}`,
-          description: `This is a 3D object ${markerId} from the AR experience.`,
-          type: '3d-object',
-          src: document.getElementById(entityId).getAttribute('gltf-model'),
-          addedAt: new Date().toISOString()
-        };
-        const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-        await this.fetchMarkerData(markerDataId);
-      });
-
-      marker.addEventListener('markerLost', () => {
-        this.allowClicks = false;
-        this.currentItem = null;
-      });
-
-      document.getElementById(entityId).addEventListener('click', async () => {
-        if (this.allowClicks) {
-          const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-          await this.fetchMarkerData(markerDataId);
-          const infoBox = document.getElementById('info-box');
-          infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
-        }
-      });
-    },
-    async loadMarkers() {
-      const scene = document.querySelector('a-scene');
-      const objectsRef = collection(db, 'objects');
-      try {
-        const snapshot = await getDocs(objectsRef);
-        if (snapshot.empty) {
-          this.defaultSceneVisible = true;
-        } else {
-          this.defaultSceneVisible = false;
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const marker = document.createElement('a-marker');
-            marker.setAttribute('preset', 'custom');
-            marker.setAttribute('type', 'pattern');
-            marker.setAttribute('url', data.patternUrl);
-            marker.setAttribute('id', `marker-${doc.id}`);
-
-            const entity = document.createElement('a-entity');
-            entity.setAttribute('gltf-model', data.modelUrl);
-            entity.setAttribute('scale', data.scale);
-            entity.setAttribute('rotation', data.rotation);
-            entity.setAttribute('position', data.position);
-            entity.setAttribute('id', `entity-${doc.id}`);
-            entity.classList.add('clickable');
-            entity.setAttribute('gesture-handler', '');
-
-            marker.appendChild(entity);
-            scene.appendChild(marker);
-            this.handleMarkerEvents(`marker-${doc.id}`, `entity-${doc.id}`);
-          });
-        }
-      } catch (error) {
-        console.error('Error loading markers: ', error);
-      }
-    }
-  },
-  mounted() {
-    this.loadMarkers();
-
-    const loader = document.getElementById('loader');
-    const myapt = document.getElementById('myapt');
-    if (myapt) {
-      myapt.addEventListener('model-loading', () => {
-        loader.style.display = 'block';
-        myapt.setAttribute('visible', 'false');
-      });
-      myapt.addEventListener('model-loaded', () => {
-        loader.style.display = 'none';
-        myapt.setAttribute('visible', 'true');
-      });
-    }
-
-    this.checkAuthState();
-  }
-};
-</script>
-
-<style scoped>
-/* Your styles here */
-</style>
+        document.getElementById('login-button').style
