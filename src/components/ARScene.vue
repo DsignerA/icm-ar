@@ -13,73 +13,12 @@
       renderer="logarithmicDepthBuffer: false;"
       gesture-detector
     >
-      <a-assets>
-        <a-asset-item id="apt1" src="https://rvanfts.com/ar/1-branded-chips/scene.gltf"></a-asset-item>
-        <a-asset-item id="apt2" src="https://rvanfts.com/ar/ps5/scene.gltf"></a-asset-item>
-      </a-assets>
-  
-      <a-marker preset="hiro" id="marker1">
-        <a-entity
-          raycaster="objects: .clickable"
-          position="0 0 0"
-          id="myapt1"
-          scale="1 1 1"
-          rotation="-50 0 0"
-          gltf-model="#apt1"
-          class="clickable"
-          visible="true"
-          gesture-handler
-        ></a-entity>
-      </a-marker>
-  
-      <a-marker type="pattern" url="https://rvanfts.com/ar/1patterns/main-ar.patt" id="marker2">
-        <a-entity
-          raycaster="objects: .clickable"
-          position="0 0 0"
-          id="myapt2"
-          scale=".01 .01 .01"
-          rotation="-50 0 0"
-          gltf-model="#apt2"
-          class="clickable"
-          visible="true"
-          gesture-handler
-        ></a-entity>
-      </a-marker>
-  
-      <a-entity camera></a-entity>
+      
     </a-scene>
-
-    <div id="info-box">
-      <p id="info-name"></p>
-      <p id="info-description"></p>
-      <p id="info-addedAt"></p>
-      <button class="button" id="mint-button">Collect</button>
-    </div>
-
-    <div id="loader" class="loader" style="display: none;"></div>
   </div>
 </template>
 
 <script>
-import firebase from 'firebase/app';
-import 'firebase/auth';
-import 'firebase/firestore';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
-  authDomain: "arwallet-bfd5e.firebaseapp.com",
-  projectId: "arwallet-bfd5e",
-  storageBucket: "arwallet-bfd5e.appspot.com",
-  messagingSenderId: "865160955063",
-  appId: "1:865160955063:web:e82191fc0207faf1fcb932",
-  measurementId: "G-LV113YTC27"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
 export default {
   data() {
     return {
@@ -184,84 +123,11 @@ export default {
         }
       });
     },
-    displayInventory() {
-      const user = auth.currentUser;
-      if (user) {
-        const userRef = db.collection('users').doc(user.uid);
-        userRef.get().then((doc) => {
-          if (doc.exists) {
-            const inventory = doc.data().inventory || [];
-            const inventoryIcons = document.getElementById('inventory-icons');
-            inventoryIcons.innerHTML = '';
-
-            inventory.forEach(item => {
-              let iconElement;
-              switch (item.type) {
-                case 'info':
-                case 'image':
-                  iconElement = document.createElement('img');
-                  iconElement.src = item.src;
-                  iconElement.classList.add('inventory-icon');
-                  inventoryIcons.appendChild(iconElement);
-                  break;
-                case '3d-object':
-                  iconElement = document.createElement('model-viewer');
-                  iconElement.setAttribute('src', item.src);
-                  iconElement.setAttribute('alt', '3D Object');
-                  iconElement.setAttribute('camera-controls', '');
-                  iconElement.setAttribute('auto-rotate', '');
-                  iconElement.setAttribute('class', 'inventory-icon');
-                  inventoryIcons.appendChild(iconElement);
-                  break;
-                case 'video':
-                  iconElement = document.createElement('video');
-                  iconElement.src = item.src;
-                  iconElement.classList.add('inventory-icon');
-                  iconElement.setAttribute('autoplay', 'true');
-                  iconElement.setAttribute('muted', 'true');
-                  inventoryIcons.appendChild(iconElement);
-                  break;
-                case 'gif':
-                  iconElement = document.createElement('img');
-                  iconElement.src = item.src;
-                  iconElement.classList.add('inventory-icon');
-                  inventoryIcons.appendChild(iconElement);
-                  break;
-                default:
-                  break;
-              }
-            });
-          } else {
-            console.log("No such document!");
-          }
-        }).catch((error) => {
-          console.log("Error getting document:", error);
-        });
-      } else {
-        alert('Please log in to view your inventory.');
-      }
-    },
-    checkAuthState() {
-      auth.onAuthStateChanged((user) => {
-        if (user && document.getElementById("mySidebar").style.width !== "0px") {
-          console.log("User is logged in and sidebar is open.");
-          document.getElementById('logout-button').style.display = 'block';
-        } else {
-          console.log("User is not logged in or sidebar is closed.");
-          document.getElementById('logout-button').style.display = 'none';
-        }
-      });
-    }
   },
   mounted() {
     console.log('ARScene component mounted.');
-    this.allowClicks = true;
-    this.currentItem = null;
-
-    const viewInventoryButton = document.getElementById('view-inventory-button');
-    if (viewInventoryButton) {
-      viewInventoryButton.addEventListener('click', this.displayInventory);
-    }
+    this.handleMarkerEvents('marker1', 'myapt1');
+    this.handleMarkerEvents('marker2', 'myapt2');
 
     document.getElementById('mint-button').addEventListener('click', () => {
       if (this.currentItem) {
@@ -271,62 +137,11 @@ export default {
       }
     });
 
-    document.getElementById('signup-button').addEventListener('click', () => {
-      const email = prompt('Enter your email:');
-      const password = prompt('Enter your password:');
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          db.collection('users').doc(user.uid).set({
-            email: user.email,
-            inventory: []
-          }).then(() => {
-            alert('User object created in Firestore!');
-          }).catch((error) => {
-            console.error('Error creating user object in Firestore:', error);
-          });
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
-    });
-
-    document.getElementById('login-button').addEventListener('click', () => {
-      const user = auth.currentUser;
-      if (user) {
-        alert(`You are already logged in as ${user.email}`);
-      } else {
-        const email = prompt('Enter your email:');
-        const password = prompt('Enter your password:');
-        auth.signInWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            alert('Login successful!');
-            this.checkAuthState();
-          })
-          .catch((error) => {
-            alert(error.message);
-          });
-      }
-    });
-
-    document.getElementById('logout-button').addEventListener('click', () => {
-      auth.signOut().then(() => {
-        alert('Logout successful!');
-        document.getElementById('signup-button').style.display = 'block';
-        document.getElementById('login-button').style.display = 'block';
-        document.getElementById('logout-button').style.display = 'none';
-      }).catch((error) => {
-        alert(error.message);
-      });
-    });
-
-    this.checkAuthState();
-
-    this.handleMarkerEvents('marker1', 'myapt1');
-    this.handleMarkerEvents('marker2', 'myapt2');
-  }
+    document.getElementById('view-inventory-button').addEventListener('click', this.displayInventory);
+  },
 };
 </script>
+
 
 <style scoped>
 /* Add your styles here */
