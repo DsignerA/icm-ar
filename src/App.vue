@@ -41,10 +41,11 @@ export default {
     };
   },
 };
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('view-inventory-button').addEventListener('click', () => {
+    displayInventory();
+  });
 
-document.getElementById('view-inventory-button').addEventListener('click', () => {
-      displayInventory();
-    });
 </script>
 
 <style>
