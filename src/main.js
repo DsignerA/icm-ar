@@ -2,12 +2,11 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router'; // Ensure this path is correct
-import './firebase'; // Ensure Firebase is initialized
+import './firebaseConfig'; // Ensure Firebase is initialized
 
 const app = createApp(App);
 app.use(router);
+app.mount('#app');
 
 // Ignore custom elements starting with 'a-' to prevent Vue warnings
-app.config.compilerOptions.isCustomElement = tag => tag.startsWith('a-');
-
-app.mount('#app');
+app.config.ignoredElements = [/^a-/];

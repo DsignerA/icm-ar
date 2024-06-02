@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { auth, db,collection } from '../firebase'; // Correct path to firebaseConfig.js
+import { auth, db, collection, signInWithEmailAndPassword, createUserWithEmailAndPassword } from '../firebase';
 
 export default {
   name: 'ARScene',
@@ -171,33 +171,28 @@ export default {
     async signup() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          db.collection('users').doc(user.uid).set({
-            email: user.email,
-            inventory: []
-          }).then(() => {
-            alert('User object created in Firestore!');
-          }).catch((error) => {
-            console.error('Error creating user object in Firestore: ', error);
-          });
-        })
-        .catch((error) => {
-          alert(error.message);
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await db.collection('users').doc(user.uid).set({
+          email: user.email,
+          inventory: []
         });
+        alert('User object created in Firestore!');
+      } catch (error) {
+        alert(error.message);
+      }
     },
     async login() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
-      auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-          alert('Login successful!');
-          this.checkAuthState();
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert('Login successful!');
+        this.checkAuthState();
+      } catch (error) {
+        alert(error.message);
+      }
     },
     mintItem() {
       if (this.currentItem) {
@@ -207,14 +202,15 @@ export default {
       }
     },
     async logout() {
-      auth.signOut().then(() => {
+      try {
+        await auth.signOut();
         alert('Logout successful!');
         document.getElementById('signup-button').style.display = 'block';
         document.getElementById('login-button').style.display = 'block';
         document.getElementById('logout-button').style.display = 'none';
-      }).catch((error) => {
+      } catch (error) {
         alert(error.message);
-      });
+      }
     },
     checkAuthState() {
       auth.onAuthStateChanged((user) => {
@@ -256,9 +252,9 @@ export default {
     },
     async loadMarkers() {
       const scene = document.querySelector('a-scene');
-      const objectsRef = db.collection('objects');
+      const objectsRef = collection(db, 'objects');
       try {
-        const snapshot = await objectsRef.get();
+        const snapshot = await getDocs(objectsRef);
         if (snapshot.empty) {
           this.defaultSceneVisible = true;
         } else {
