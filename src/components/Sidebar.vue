@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { auth, db } from '../firebase.js';
+import { auth, db, firebase } from './firebase.js';
 
 export default {
   data() {
@@ -34,7 +34,7 @@ export default {
       const password = prompt('Enter your password:');
       if (email && password) {
         console.log('Attempting to sign up with email:', email);
-        auth.createUserWithEmailAndPassword(email, password)
+        firebase.auth().createUserWithEmailAndPassword(email, password)
           .then((userCredential) => {
             console.log('User signed up:', userCredential.user);
             const user = userCredential.user;
@@ -62,7 +62,7 @@ export default {
       const password = prompt('Enter your password:');
       if (email && password) {
         console.log('Attempting to log in with email:', email);
-        auth.signInWithEmailAndPassword(email, password)
+        firebase.auth().signInWithEmailAndPassword(email, password)
           .then((userCredential) => {
             console.log('User logged in:', userCredential.user);
             alert('Login successful!');
