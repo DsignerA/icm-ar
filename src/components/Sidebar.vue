@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { auth, db, firebase } from './firebase.js';
+import { auth, db, firebase } from '../firebase.js';
 
 export default {
   data() {
