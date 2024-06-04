@@ -21,6 +21,7 @@ import { ref, onMounted } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import ARScene from './components/ARScene.vue';
 import { auth, db } from './firebase.js'; // Import Firebase configuration
+import { collection, doc, getDoc } from 'firebase/firestore'; // Import Firestore functions
 
 export default {
   components: {
@@ -39,10 +40,10 @@ export default {
     const displayInventory = async () => {
       const user = auth.currentUser;
       if (user) {
-        const userRef = db.collection('users').doc(user.uid);
-        const doc = await userRef.get();
-        if (doc.exists) {
-          const inventory = doc.data().inventory || [];
+        const userRef = doc(collection(db, 'users'), user.uid);
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists()) {
+          const inventory = docSnap.data().inventory || [];
           const inventoryIcons = document.getElementById('inventory-icons');
           inventoryIcons.innerHTML = '';
 
