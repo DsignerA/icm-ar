@@ -46,7 +46,7 @@ export default {
     },
     document.getElementById('signup-button').addEventListener('click', () => {
   signup();
-});
+}),
 
 signup() {
   const email = prompt('Enter your email:');
@@ -77,7 +77,7 @@ signup() {
       console.error('Error during sign up or Firestore write:', error);
       alert(error.message);
     });
-};
+},
 
     login() {
       const email = prompt('Enter your email:');
