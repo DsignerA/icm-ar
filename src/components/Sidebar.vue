@@ -13,8 +13,11 @@
 </template>
 
 <script>
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/firestore';
 
-
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
   authDomain: "arwallet-bfd5e.firebaseapp.com",
@@ -26,7 +29,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -44,47 +49,42 @@ export default {
     closeNav() {
       this.sidebarWidth = '0';
     },
-    document.getElementById('signup-button').addEventListener('click', () => {
-  signup();
-}),
+    signup() {
+      const email = prompt('Enter your email:');
+      const password = prompt('Enter your password:');
 
-signup() {
-  const email = prompt('Enter your email:');
-  const password = prompt('Enter your password:');
+      if (!email || !password) {
+        alert('Email and password cannot be empty.');
+        return;
+      }
 
-  if (!email || !password) {
-    alert('Email and password cannot be empty.');
-    return;
-  }
+      console.log('Attempting to sign up with email:', email);
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          console.log('User signed up:', userCredential.user);
+          const user = userCredential.user;
 
-  console.log('Attempting to sign up with email:', email);
-  firebase.auth().createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      console.log('User signed up:', userCredential.user);
-      const user = userCredential.user;
-
-      return db.collection('users').doc(user.uid).set({
-        email: user.email,
-        inventory: []
-      });
-    })
-    .then(() => {
-      console.log('User object created in Firestore');
-      alert('User object created in Firestore!');
-      this.checkAuthState();
-    })
-    .catch((error) => {
-      console.error('Error during sign up or Firestore write:', error);
-      alert(error.message);
-    });
-},
-
+          return db.collection('users').doc(user.uid).set({
+            email: user.email,
+            inventory: []
+          });
+        })
+        .then(() => {
+          console.log('User object created in Firestore');
+          alert('User object created in Firestore!');
+          this.checkAuthState();
+        })
+        .catch((error) => {
+          console.error('Error during sign up or Firestore write:', error);
+          alert(error.message);
+        });
+    },
     login() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
       if (email && password) {
         console.log('Attempting to log in with email:', email);
-        firebase.auth().signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, password)
           .then((userCredential) => {
             console.log('User logged in:', userCredential.user);
             alert('Login successful!');
