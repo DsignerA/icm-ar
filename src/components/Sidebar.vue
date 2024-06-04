@@ -14,7 +14,7 @@
 </template>
 
 <script>
-
+import { firebase, auth, db } from '../firebase.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
