@@ -6,6 +6,7 @@
     <button class="icon-button logout-button" id="logout-button"><i class="fas fa-sign-out-alt"></i></button>
     <div id="inventory-icons"></div>
     <ARScene />
+    <Modal v-if="isModalOpen" :isOpen="isModalOpen" :item="selectedItem" @close="closeModal" />
     <div id="info-box">
       <p id="info-name"></p>
       <p id="info-description"></p>
@@ -20,6 +21,7 @@
 import { ref, onMounted } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import ARScene from './components/ARScene.vue';
+import Modal from './components/Modal.vue';
 import { auth, db } from './firebase.js'; // Import Firebase configuration
 import { collection, doc, getDoc } from 'firebase/firestore'; // Import Firestore functions
 
@@ -27,9 +29,12 @@ export default {
   components: {
     Sidebar,
     ARScene,
+    Modal,
   },
   setup() {
     const sidebar = ref(null);
+    const isModalOpen = ref(false);
+    const selectedItem = ref(null);
 
     const openNav = () => {
       if (sidebar.value) {
@@ -55,6 +60,7 @@ export default {
                 iconElement = document.createElement('img');
                 iconElement.src = item.src;
                 iconElement.classList.add('inventory-icon');
+                iconElement.addEventListener('click', () => openModal(item));
                 inventoryIcons.appendChild(iconElement);
                 break;
               case '3d-object':
@@ -64,6 +70,7 @@ export default {
                 iconElement.setAttribute('camera-controls', '');
                 iconElement.setAttribute('auto-rotate', '');
                 iconElement.setAttribute('class', 'inventory-icon');
+                iconElement.addEventListener('click', () => openModal(item));
                 inventoryIcons.appendChild(iconElement);
                 break;
               case 'video':
@@ -72,12 +79,14 @@ export default {
                 iconElement.classList.add('inventory-icon');
                 iconElement.setAttribute('autoplay', 'true');
                 iconElement.setAttribute('muted', 'true');
+                iconElement.addEventListener('click', () => openModal(item));
                 inventoryIcons.appendChild(iconElement);
                 break;
               case 'gif':
                 iconElement = document.createElement('img');
                 iconElement.src = item.src;
                 iconElement.classList.add('inventory-icon');
+                iconElement.addEventListener('click', () => openModal(item));
                 inventoryIcons.appendChild(iconElement);
                 break;
               default:
@@ -92,6 +101,16 @@ export default {
       }
     };
 
+    const openModal = (item) => {
+      selectedItem.value = item;
+      isModalOpen.value = true;
+    };
+
+    const closeModal = () => {
+      isModalOpen.value = false;
+      selectedItem.value = null;
+    };
+
     onMounted(() => {
       const viewInventoryButton = document.getElementById('view-inventory-button');
       if (viewInventoryButton) {
@@ -102,6 +121,9 @@ export default {
     return {
       sidebar,
       openNav,
+      isModalOpen,
+      selectedItem,
+      closeModal,
     };
   },
 };
