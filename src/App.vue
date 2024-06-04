@@ -20,6 +20,7 @@
 import { ref, onMounted } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import ARScene from './components/ARScene.vue';
+import { auth, db } from './firebase.js'; // Import Firebase configuration
 
 export default {
   components: {
@@ -35,9 +36,59 @@ export default {
       }
     };
 
-    const displayInventory = () => {
-      // Your displayInventory logic here
-      console.log('Displaying inventory...');
+    const displayInventory = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = db.collection('users').doc(user.uid);
+        const doc = await userRef.get();
+        if (doc.exists) {
+          const inventory = doc.data().inventory || [];
+          const inventoryIcons = document.getElementById('inventory-icons');
+          inventoryIcons.innerHTML = '';
+
+          inventory.forEach(item => {
+            let iconElement;
+            switch (item.type) {
+              case 'info':
+              case 'image':
+                iconElement = document.createElement('img');
+                iconElement.src = item.src;
+                iconElement.classList.add('inventory-icon');
+                inventoryIcons.appendChild(iconElement);
+                break;
+              case '3d-object':
+                iconElement = document.createElement('model-viewer');
+                iconElement.setAttribute('src', item.src);
+                iconElement.setAttribute('alt', '3D Object');
+                iconElement.setAttribute('camera-controls', '');
+                iconElement.setAttribute('auto-rotate', '');
+                iconElement.setAttribute('class', 'inventory-icon');
+                inventoryIcons.appendChild(iconElement);
+                break;
+              case 'video':
+                iconElement = document.createElement('video');
+                iconElement.src = item.src;
+                iconElement.classList.add('inventory-icon');
+                iconElement.setAttribute('autoplay', 'true');
+                iconElement.setAttribute('muted', 'true');
+                inventoryIcons.appendChild(iconElement);
+                break;
+              case 'gif':
+                iconElement = document.createElement('img');
+                iconElement.src = item.src;
+                iconElement.classList.add('inventory-icon');
+                inventoryIcons.appendChild(iconElement);
+                break;
+              default:
+                break;
+            }
+          });
+        } else {
+          console.log("No such document!");
+        }
+      } else {
+        alert('Please log in to view your inventory.');
+      }
     };
 
     onMounted(() => {
