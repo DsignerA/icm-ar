@@ -5,6 +5,15 @@
         <h2>{{ item.name }}</h2>
         <p>{{ item.description }}</p>
         <p>Added at: {{ item.addedAt }}</p>
+        <div v-if="item.type === '3d-object'">
+          <model-viewer 
+            :src="item.src" 
+            alt="3D Object" 
+            camera-controls 
+            auto-rotate
+            class="modal-3d-viewer">
+          </model-viewer>
+        </div>
       </div>
     </div>
   </template>
@@ -49,6 +58,12 @@
     border-radius: 8px;
     max-width: 500px;
     width: 100%;
+    position: relative;
+  }
+  
+  .modal-3d-viewer {
+    width: 100%;
+    height: 300px;
   }
   
   .close-button {
