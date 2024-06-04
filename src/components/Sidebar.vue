@@ -13,6 +13,9 @@
 </template>
 
 <script>
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/firestore';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -25,10 +28,11 @@ const firebaseConfig = {
   measurementId: "G-LV113YTC27"
 };
 
-// Initialize Firebase
+// Initialize Firebase if it hasn't been initialized yet
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
