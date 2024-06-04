@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import ARScene from './components/ARScene.vue';
 
@@ -35,21 +35,24 @@ export default {
       }
     };
 
+    const displayInventory = () => {
+      // Your displayInventory logic here
+      console.log('Displaying inventory...');
+    };
+
+    onMounted(() => {
+      const viewInventoryButton = document.getElementById('view-inventory-button');
+      if (viewInventoryButton) {
+        viewInventoryButton.addEventListener('click', displayInventory);
+      }
+    });
+
     return {
       sidebar,
       openNav,
     };
   },
 };
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('view-inventory-button').addEventListener('click', () => {
-    displayInventory();
-  });
-
-  function displayInventory() {
-    // Your displayInventory logic here
-  }
-});
 </script>
 
 <style>
