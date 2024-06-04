@@ -62,16 +62,11 @@ export default {
       console.error(`Failed to load model ${entityId}.`);
     },
     displayItemData(item) {
-        if (item) {
-            document.getElementById('info-name').innerText = item.name || '';
-            document.getElementById('info-description').innerText = item.description || '';
-            document.getElementById('info-addedAt').innerText = item.addedAt || '';
-            // Display additional data
-            document.getElementById('info-accessLevel').innerText = item.accessLevel || '';
-            document.getElementById('info-location').innerText = item.location || '';
-            document.getElementById('info-usageInstructions').innerText = item.usageInstructions || '';
-            document.getElementById('info-expiryDate').innerText = item.expiryDate || '';
-        }
+      if (item) {
+        document.getElementById('info-name').innerText = item.name || '';
+        document.getElementById('info-description').innerText = item.description || '';
+        document.getElementById('info-addedAt').innerText = item.addedAt || '';
+      }
     },
     fetchMarkerData(markerId) {
       const objectRef = db.collection('objects').doc(markerId);
