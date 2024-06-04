@@ -44,7 +44,11 @@ export default {
     closeNav() {
       this.sidebarWidth = '0';
     },
-    signup() {
+    document.getElementById('signup-button').addEventListener('click', () => {
+  signup();
+});
+
+signup() {
   const email = prompt('Enter your email:');
   const password = prompt('Enter your password:');
 
@@ -73,7 +77,8 @@ export default {
       console.error('Error during sign up or Firestore write:', error);
       alert(error.message);
     });
-},
+};
+
     login() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
