@@ -19,6 +19,7 @@
 </template>
 
 <script>
+import { firebase } from './firebase.js'; // Import Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
   authDomain: "arwallet-bfd5e.firebaseapp.com",
