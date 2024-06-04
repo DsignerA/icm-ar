@@ -43,33 +43,35 @@ export default {
       this.sidebarWidth = '0';
     },
     signup() {
-      const email = prompt('Enter your email:');
-      const password = prompt('Enter your password:');
-      if (email && password) {
-        console.log('Attempting to sign up with email:', email);
-        firebase.auth().createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            console.log('User signed up:', userCredential.user);
-            const user = userCredential.user;
-            db.collection('users').doc(user.uid).set({
-              email: user.email,
-              inventory: []
-            }).then(() => {
-              console.log('User object created in Firestore');
-              alert('User object created in Firestore!');
-              this.checkAuthState();
-            }).catch((error) => {
-              console.error('Error creating user object in Firestore:', error);
-            });
-          })
-          .catch((error) => {
-            console.error('Error during sign up:', error);
-            alert(error.message);
-          });
-      } else {
-        alert('Email and password cannot be empty.');
-      }
-    },
+  const email = prompt('Enter your email:');
+  const password = prompt('Enter your password:');
+
+  if (!email || !password) {
+    alert('Email and password cannot be empty.');
+    return;
+  }
+
+  console.log('Attempting to sign up with email:', email);
+  firebase.auth().createUserWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      console.log('User signed up:', userCredential.user);
+      const user = userCredential.user;
+
+      return db.collection('users').doc(user.uid).set({
+        email: user.email,
+        inventory: []
+      });
+    })
+    .then(() => {
+      console.log('User object created in Firestore');
+      alert('User object created in Firestore!');
+      this.checkAuthState();
+    })
+    .catch((error) => {
+      console.error('Error during sign up or Firestore write:', error);
+      alert(error.message);
+    });
+},
     login() {
       const email = prompt('Enter your email:');
       const password = prompt('Enter your password:');
