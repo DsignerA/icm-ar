@@ -2,10 +2,6 @@
     <div v-if="isOpen" class="modal-overlay" @click="close">
       <div class="modal-content" @click.stop>
         <button class="close-button" @click="close">×</button>
-        <h2>{{ item.name }}</h2>
-        <p>{{ item.description }}</p>
-        <p>Added at: {{ item.addedAt }}</p>
-        <div v-if="item.type === '3d-object'">
           <model-viewer 
             :src="item.src" 
             alt="3D Object" 
@@ -13,6 +9,12 @@
             auto-rotate
             class="modal-3d-viewer">
           </model-viewer>
+        <h2>{{ item.name }}</h2>
+     <p>{{ item.accessLevel }}</p>
+        <p>{{ item.description }}</p>
+        <p>{{ item.usageInstructions }}</p>
+        <div v-if="item.type === '3d-object'">
+        
         </div>
         <!-- Add other types as needed -->
       </div>
