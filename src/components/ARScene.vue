@@ -95,22 +95,25 @@ fetchMarkerData(markerId) {
       console.error('Error getting object data:', error);
     });
   },
-    addItemToInventory(item) {
+  
+  addItemToInventory(item) {
     const user = auth.currentUser;
     if (user) {
       const userRef = db.collection('users').doc(user.uid);
+      const itemToAdd = {
+        name: item.name || '',
+        description: item.description || '',
+        accessLevel: item.accessLevel || '',
+        location: item.location || '',
+        usageInstructions: item.usageInstructions || '',
+        expiryDate: item.expiryDate || '',
+        type: item.type || '',
+        src: item.src || '',
+        addedAt: item.addedAt || new Date().toISOString()
+      };
+
       userRef.update({
-        inventory: firebase.firestore.FieldValue.arrayUnion({
-          name: item.name,
-          description: item.description,
-          accessLevel: item.accessLevel,
-          location: item.location,
-          usageInstructions: item.usageInstructions,
-          expiryDate: item.expiryDate,
-          type: item.type,
-          src: item.src,
-          addedAt: item.addedAt
-        })
+        inventory: firebase.firestore.FieldValue.arrayUnion(itemToAdd)
       }).then(() => {
         alert('Item added to inventory!');
       }).catch((error) => {
