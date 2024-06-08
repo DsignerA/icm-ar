@@ -7,12 +7,18 @@
     <div id="inventory-icons"></div>
     <ARScene />
     <Modal v-if="isModalOpen" :isOpen="isModalOpen" :item="selectedItem" @close="closeModal" />
-    <div id="info-box">
-      <p id="info-name"></p>
-      <p id="info-description"></p>
-      <p id="info-addedAt"></p>
-      <button class="button" id="mint-button">Collect</button>
-    </div>
+ <div id="info-box">
+  <h2>{{ item.name }}</h2>
+  <p>{{ item.accessLevel }}</p>
+  <p>{{ item.description }}</p>
+  <p>{{ item.usageInstructions }}</p>
+  <p>{{ item.perks ? item.perks.join(', ') : '' }}</p>
+  <p>{{ item.level }}</p>
+  <p>{{ item.amount }}</p>
+  <p>{{ item.expire }}</p>
+  <button class="button" @click="mintItem">Collect</button>
+</div>
+
     <div id="loader" class="loader" style="display: none;"></div>
   </div>
 </template>
