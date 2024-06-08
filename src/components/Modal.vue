@@ -1,95 +1,62 @@
 <template>
-    <div v-if="isOpen" class="modal-overlay" @click="close">
-      <div class="modal-content" @click.stop>
-        <button class="close-button" @click="close">×</button>
-<<<<<<< HEAD
-        <model-viewer 
-=======
-          <model-viewer 
->>>>>>> 39267e685ba977277d28439363a92eecb9c2b2ee
-            :src="item.src" 
-            alt="3D Object" 
-            camera-controls 
-            auto-rotate
-            class="modal-3d-viewer">
-          </model-viewer>
-        <h2>{{ item.name }}</h2>
-<<<<<<< HEAD
-        <p>{{ item.description }}</p>
-        <p>{{ item.usageInstructions }}</p>
-        <p>{{ item.accessLevel }}</p>
-        <p>Added at: {{ item.addedAt }}</p>
-        <div v-if="item.type === '3d-object'">
-      
-=======
-     <p>{{ item.accessLevel }}</p>
-        <p>{{ item.description }}</p>
-        <p>{{ item.usageInstructions }}</p>
-        <div v-if="item.type === '3d-object'">
-        
->>>>>>> 39267e685ba977277d28439363a92eecb9c2b2ee
-        </div>
-        <!-- Add other types as needed -->
-      </div>
+  <div v-if="isOpen" class="modal-overlay" @click="close">
+    <div class="modal-content" @click.stop>
+      <button class="close-button" @click="close">×</button>
+      <model-viewer 
+        src="path/to/your/model.glb"
+        alt="A 3D model of an astronaut"
+        auto-rotate
+        camera-controls>
+      </model-viewer>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    props: {
-      isOpen: {
-        type: Boolean,
-        required: true,
-      },
-      item: {
-        type: Object,
-        required: true,
-      },
-    },
-    methods: {
-      close() {
-        this.$emit('close');
-      },
-    },
-  };
-  </script>
-  
-  <style scoped>
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'Modal',
+  props: {
+    isOpen: {
+      type: Boolean,
+      default: false
+    }
+  },
+  methods: {
+    close() {
+      this.$emit('close');
+    }
   }
-  
-  .modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 500px;
-    width: 100%;
-    position: relative;
-  }
-  
-  .modal-3d-viewer {
-    width: 100%;
-    height: 300px;
-  }
-  
-  .close-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-  }
-  </style>
-  
+};
+</script>
+
+<style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+</style>
