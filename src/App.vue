@@ -3,7 +3,7 @@
     <Sidebar ref="sidebar" />
     <button class="icon-button" style="left: 10px;" @click="openNav"><i class="fas fa-bars"></i></button>
     <button class="icon-button" style="right: 10px;" id="view-inventory-button"><i class="fas fa-box"></i></button>
-    <button class="icon-button logout-button" id="logout-button"><i class="fas fa-sign-out-alt"></i></button>
+    
     <div id="inventory-icons"></div>
     <ARScene />
     <Modal v-if="isModalOpen" :isOpen="isModalOpen" :item="selectedItem" @close="closeModal" />

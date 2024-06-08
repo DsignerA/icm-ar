@@ -70,48 +70,61 @@ export default {
         document.getElementById('info-expire').innerText = item.expire || '';
       }
     },
-    fetchMarkerData(markerId) {
-      const objectRef = db.collection('objects').doc(markerId);
-      objectRef.get().then((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
-          if (data) {
-            this.displayItemData(data);
-          } else {
-            console.error('No data found in document:', markerId);
-          }
+fetchMarkerData(markerId) {
+    const objectRef = db.collection('objects').doc(markerId);
+    objectRef.get().then((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        if (data) {
+          this.displayItemData(data);
         } else {
-          console.log("No data found in Firestore for marker:", markerId);
-          if (this.currentItem) {
-            this.displayItemData(this.currentItem);
-            objectRef.set(this.currentItem).then(() => {
-              console.log("Default data pushed to Firestore for marker:", markerId);
-            }).catch((error) => {
-              console.error('Error adding default data to Firestore: ', error);
-            });
-          } else {
-            console.error('Current item is not valid or is null');
-          }
+          console.error('No data found in document:', markerId);
         }
-      }).catch((error) => {
-        console.error('Error getting object data:', error);
-      });
-    },
-    addItemToInventory(item) {
-      const user = auth.currentUser;
-      if (user) {
-        const userRef = db.collection('users').doc(user.uid);
-        userRef.update({
-          inventory: firebase.firestore.FieldValue.arrayUnion(item)
-        }).then(() => {
-          alert('Item added to inventory!');
-        }).catch((error) => {
-          console.error('Error adding item to inventory:', error);
-        });
       } else {
-        alert('Please log in to add items to your inventory.');
+        console.log("No data found in Firestore for marker:", markerId);
+        if (this.currentItem) {
+          this.displayItemData(this.currentItem);
+          objectRef.set(this.currentItem).then(() => {
+            console.log("Default data pushed to Firestore for marker:", markerId);
+          }).catch((error) => {
+            console.error('Error adding default data to Firestore: ', error);
+          });
+        } else {
+          console.error('Current item is not valid or is null');
+        }
       }
-    },
+    }).catch((error) => {
+      console.error('Error getting object data:', error);
+    });
+  },
+  
+  addItemToInventory(item) {
+    const user = auth.currentUser;
+    if (user) {
+      const userRef = db.collection('users').doc(user.uid);
+      const itemToAdd = {
+        name: item.name || '',
+        description: item.description || '',
+        accessLevel: item.accessLevel || '',
+        location: item.location || '',
+        usageInstructions: item.usageInstructions || '',
+        expiryDate: item.expiryDate || '',
+        type: item.type || '',
+        src: item.src || '',
+        addedAt: item.addedAt || new Date().toISOString()
+      };
+
+      userRef.update({
+        inventory: firebase.firestore.FieldValue.arrayUnion(itemToAdd)
+      }).then(() => {
+        alert('Item added to inventory!');
+      }).catch((error) => {
+        console.error('Error adding item to inventory:', error);
+      });
+    } else {
+      alert('Please log in to add items to your inventory.');
+    }
+  },
     handleMarkerEvents(markerId, entityId) {
       const marker = document.getElementById(markerId);
 

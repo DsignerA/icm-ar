@@ -2,7 +2,11 @@
     <div v-if="isOpen" class="modal-overlay" @click="close">
       <div class="modal-content" @click.stop>
         <button class="close-button" @click="close">×</button>
+<<<<<<< HEAD
         <model-viewer 
+=======
+          <model-viewer 
+>>>>>>> 39267e685ba977277d28439363a92eecb9c2b2ee
             :src="item.src" 
             alt="3D Object" 
             camera-controls 
@@ -10,12 +14,20 @@
             class="modal-3d-viewer">
           </model-viewer>
         <h2>{{ item.name }}</h2>
+<<<<<<< HEAD
         <p>{{ item.description }}</p>
         <p>{{ item.usageInstructions }}</p>
         <p>{{ item.accessLevel }}</p>
         <p>Added at: {{ item.addedAt }}</p>
         <div v-if="item.type === '3d-object'">
       
+=======
+     <p>{{ item.accessLevel }}</p>
+        <p>{{ item.description }}</p>
+        <p>{{ item.usageInstructions }}</p>
+        <div v-if="item.type === '3d-object'">
+        
+>>>>>>> 39267e685ba977277d28439363a92eecb9c2b2ee
         </div>
         <!-- Add other types as needed -->
       </div>
