@@ -13,7 +13,6 @@
       renderer="logarithmicDepthBuffer: false;"
       gesture-detector
     >
-      
     </a-scene>
   </div>
 </template>
@@ -65,7 +64,10 @@ export default {
       if (item) {
         document.getElementById('info-name').innerText = item.name || '';
         document.getElementById('info-description').innerText = item.description || '';
-        document.getElementById('info-addedAt').innerText = item.addedAt || '';
+        document.getElementById('info-perks').innerText = item.perks ? item.perks.join(', ') : '';
+        document.getElementById('info-level').innerText = item.level || '';
+        document.getElementById('info-amount').innerText = item.amount || '';
+        document.getElementById('info-expire').innerText = item.expire || '';
       }
     },
     fetchMarkerData(markerId) {
@@ -112,18 +114,24 @@ export default {
     },
     handleMarkerEvents(markerId, entityId) {
       const marker = document.getElementById(markerId);
+
       marker.addEventListener('markerFound', (e) => {
-        console.log(`found ${markerId}`);
-        this.currentItem = {
-          name: `3D Object ${markerId}`,
-          description: `This is a 3D object ${markerId} from the AR experience.`,
-          type: '3d-object',
-          src: document.getElementById(entityId).getAttribute('gltf-model'),
-          addedAt: new Date().toISOString()
-        };
-        const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-        this.fetchMarkerData(markerDataId);
-      });
+  console.log(`found ${markerId}`);
+  this.currentItem = {
+    name: marker.getAttribute('name'),
+    description: marker.getAttribute('description'),
+    perks: JSON.parse(marker.getAttribute('perks')),
+    level: parseInt(marker.getAttribute('level'), 10),
+    amount: parseInt(marker.getAttribute('amount'), 10),
+    expire: new Date(marker.getAttribute('expire')),
+    type: '3d-object',
+    src: document.getElementById(entityId).getAttribute('gltf-model'),
+    addedAt: new Date().toISOString()
+  };
+  const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
+  this.fetchMarkerData(markerDataId);
+});
+
 
       marker.addEventListener('markerLost', (e) => {
         console.log(`lost ${markerId}`);
@@ -139,6 +147,74 @@ export default {
         }
       });
     },
+    displayInventory() {
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = db.collection('users').doc(user.uid);
+        userRef.get().then((doc) => {
+          if (doc.exists) {
+            const inventory = doc.data().inventory || [];
+            const inventoryIcons = document.getElementById('inventory-icons');
+            inventoryIcons.innerHTML = '';
+
+            inventory.forEach(item => {
+              let iconElement;
+              switch (item.type) {
+                case 'info':
+                case 'image':
+                  iconElement = document.createElement('img');
+                  iconElement.src = item.src;
+                  iconElement.classList.add('inventory-icon');
+                  inventoryIcons.appendChild(iconElement);
+                  break;
+                case '3d-object':
+                  iconElement = document.createElement('model-viewer');
+                  iconElement.setAttribute('src', item.src);
+                  iconElement.setAttribute('alt', '3D Object');
+                  iconElement.setAttribute('camera-controls', '');
+                  iconElement.setAttribute('auto-rotate', '');
+                  iconElement.setAttribute('class', 'inventory-icon');
+                  inventoryIcons.appendChild(iconElement);
+                  break;
+                case 'video':
+                  iconElement = document.createElement('video');
+                  iconElement.src = item.src;
+                  iconElement.classList.add('inventory-icon');
+                  iconElement.setAttribute('autoplay', 'true');
+                  iconElement.setAttribute('muted', 'true');
+                  inventoryIcons.appendChild(iconElement);
+                  break;
+                case 'gif':
+                  iconElement = document.createElement('img');
+                  iconElement.src = item.src;
+                  iconElement.classList.add('inventory-icon');
+                  inventoryIcons.appendChild(iconElement);
+                  break;
+                default:
+                  break;
+              }
+            });
+          } else {
+            console.log("No such document!");
+          }
+        }).catch((error) => {
+          console.log("Error getting document:", error);
+        });
+      } else {
+        alert('Please log in to view your inventory.');
+      }
+    },
+    checkAuthState() {
+      auth.onAuthStateChanged((user) => {
+        if (user && document.getElementById("mySidebar").style.width !== "0px") {
+          console.log("User is logged in and sidebar is open.");
+          document.getElementById('logout-button').style.display = 'block';
+        } else {
+          console.log("User is not logged in or sidebar is closed.");
+          document.getElementById('logout-button').style.display = 'none';
+        }
+      });
+    }
   },
   mounted() {
     console.log('ARScene component mounted.');
@@ -157,6 +233,7 @@ export default {
   },
 };
 </script>
+
 
 
 <style scoped>
