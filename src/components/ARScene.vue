@@ -18,7 +18,6 @@
 </template>
 
 <script>
-//import { firebase, auth, db } from '../firebase.js';
 const firebaseConfig = {
   apiKey: "AIzaSyBp_DolCW24dLRggJ79qfsB6lKrkJ8osrQ",
   authDomain: "arwallet-bfd5e.firebaseapp.com",
@@ -71,64 +70,74 @@ export default {
         document.getElementById('info-expire').innerText = item.expire || '';
       }
     },
-fetchMarkerData(markerId) {
-    const objectRef = db.collection('objects').doc(markerId);
-    objectRef.get().then((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        if (data) {
-          this.displayItemData(data);
+    fetchMarkerData(markerId) {
+      const objectRef = db.collection('objects').doc(markerId);
+      objectRef.get().then((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data) {
+            this.displayItemData(data);
+          } else {
+            console.error('No data found in document:', markerId);
+          }
         } else {
-          console.error('No data found in document:', markerId);
+          console.log("No data found in Firestore for marker:", markerId);
+          if (this.currentItem) {
+            this.displayItemData(this.currentItem);
+            objectRef.set(this.currentItem).then(() => {
+              console.log("Default data pushed to Firestore for marker:", markerId);
+            }).catch((error) => {
+              console.error('Error adding default data to Firestore: ', error);
+            });
+          } else {
+            console.error('Current item is not valid or is null');
+          }
         }
-      } else {
-        console.log("No data found in Firestore for marker:", markerId);
-        if (this.currentItem) {
-          this.displayItemData(this.currentItem);
-          objectRef.set(this.currentItem).then(() => {
-            console.log("Default data pushed to Firestore for marker:", markerId);
-          }).catch((error) => {
-            console.error('Error adding default data to Firestore: ', error);
-          });
-        } else {
-          console.error('Current item is not valid or is null');
-        }
-      }
-    }).catch((error) => {
-      console.error('Error getting object data:', error);
-    });
-  },
-  
-  addItemToInventory(item) {
-    const user = auth.currentUser;
-    if (user) {
-      const userRef = db.collection('users').doc(user.uid);
-      const itemToAdd = {
-        name: item.name || '',
-        description: item.description || '',
-        accessLevel: item.accessLevel || '',
-        location: item.location || '',
-        usageInstructions: item.usageInstructions || '',
-        expiryDate: item.expiryDate || '',
-        type: item.type || '',
-        src: item.src || '',
-        addedAt: item.addedAt || new Date().toISOString()
-      };
-
-      userRef.update({
-        inventory: firebase.firestore.FieldValue.arrayUnion(itemToAdd)
-      }).then(() => {
-        alert('Item added to inventory!');
       }).catch((error) => {
-        console.error('Error adding item to inventory:', error);
+        console.error('Error getting object data:', error);
       });
-    } else {
-      alert('Please log in to add items to your inventory.');
-    }
-  },
-   handleMarkerEvents(markerId, entityId) {
+    },
+    addItemToInventory(item) {
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = db.collection('users').doc(user.uid);
+        const itemToAdd = {
+          name: item.name || '',
+          description: item.description || '',
+          accessLevel: item.accessLevel || '',
+          location: item.location || '',
+          usageInstructions: item.usageInstructions || '',
+          expiryDate: item.expiryDate || '',
+          type: item.type || '',
+          src: item.src || '',
+          addedAt: item.addedAt || new Date().toISOString()
+        };
+
+        userRef.update({
+          inventory: firebase.firestore.FieldValue.arrayUnion(itemToAdd)
+        }).then(() => {
+          alert('Item added to inventory!');
+        }).catch((error) => {
+          console.error('Error adding item to inventory:', error);
+        });
+      } else {
+        alert('Please log in to add items to your inventory.');
+      }
+    },
+    handleMarkerEvents(markerId, entityId) {
       const marker = document.getElementById(markerId);
+      const entity = document.getElementById(entityId);
       const infoBox = document.getElementById('info-box');
+
+      if (!marker) {
+        console.error(`Marker with id ${markerId} not found.`);
+        return;
+      }
+
+      if (!entity) {
+        console.error(`Entity with id ${entityId} not found.`);
+        return;
+      }
 
       marker.addEventListener('markerFound', (e) => {
         console.log(`found ${markerId}`);
@@ -140,10 +149,10 @@ fetchMarkerData(markerId) {
           amount: parseInt(marker.getAttribute('amount'), 10),
           expire: new Date(marker.getAttribute('expire')),
           type: '3d-object',
-          src: document.getElementById(entityId).getAttribute('gltf-model'),
+          src: entity.getAttribute('gltf-model'),
           addedAt: new Date().toISOString()
         };
-        const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
+        const markerDataId = encodeURIComponent(entity.getAttribute('gltf-model'));
         this.fetchMarkerData(markerDataId);
         infoBox.style.display = 'block'; // Show info box when marker is found
       });
@@ -154,9 +163,9 @@ fetchMarkerData(markerId) {
         infoBox.style.display = 'none'; // Hide info box when marker is lost
       });
 
-      document.getElementById(entityId).addEventListener('click', (evt) => {
+      entity.addEventListener('click', (evt) => {
         if (this.allowClicks) {
-          const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
+          const markerDataId = encodeURIComponent(entity.getAttribute('gltf-model'));
           this.fetchMarkerData(markerDataId);
           infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
         }
@@ -248,8 +257,6 @@ fetchMarkerData(markerId) {
   },
 };
 </script>
-
-
 
 <style scoped>
 /* Add your styles here */
