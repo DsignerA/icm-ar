@@ -39,6 +39,7 @@ export default {
     return {
       allowClicks: true,
       currentItem: null,
+      item: null,  // Ensure item is initialized to null
     };
   },
   methods: {
@@ -125,37 +126,38 @@ fetchMarkerData(markerId) {
       alert('Please log in to add items to your inventory.');
     }
   },
-    handleMarkerEvents(markerId, entityId) {
+   handleMarkerEvents(markerId, entityId) {
       const marker = document.getElementById(markerId);
+      const infoBox = document.getElementById('info-box');
 
       marker.addEventListener('markerFound', (e) => {
-  console.log(`found ${markerId}`);
-  this.currentItem = {
-    name: marker.getAttribute('name'),
-    description: marker.getAttribute('description'),
-    perks: JSON.parse(marker.getAttribute('perks')),
-    level: parseInt(marker.getAttribute('level'), 10),
-    amount: parseInt(marker.getAttribute('amount'), 10),
-    expire: new Date(marker.getAttribute('expire')),
-    type: '3d-object',
-    src: document.getElementById(entityId).getAttribute('gltf-model'),
-    addedAt: new Date().toISOString()
-  };
-  const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
-  this.fetchMarkerData(markerDataId);
-});
-
+        console.log(`found ${markerId}`);
+        this.item = {
+          name: marker.getAttribute('name'),
+          description: marker.getAttribute('description'),
+          perks: JSON.parse(marker.getAttribute('perks')),
+          level: parseInt(marker.getAttribute('level'), 10),
+          amount: parseInt(marker.getAttribute('amount'), 10),
+          expire: new Date(marker.getAttribute('expire')),
+          type: '3d-object',
+          src: document.getElementById(entityId).getAttribute('gltf-model'),
+          addedAt: new Date().toISOString()
+        };
+        const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
+        this.fetchMarkerData(markerDataId);
+        infoBox.style.display = 'block'; // Show info box when marker is found
+      });
 
       marker.addEventListener('markerLost', (e) => {
         console.log(`lost ${markerId}`);
-        this.currentItem = null;
+        this.item = null;
+        infoBox.style.display = 'none'; // Hide info box when marker is lost
       });
 
       document.getElementById(entityId).addEventListener('click', (evt) => {
         if (this.allowClicks) {
           const markerDataId = encodeURIComponent(document.getElementById(entityId).getAttribute('gltf-model'));
           this.fetchMarkerData(markerDataId);
-          const infoBox = document.getElementById('info-box');
           infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
         }
       });

@@ -7,7 +7,7 @@
     <div id="inventory-icons"></div>
     <ARScene />
     <Modal v-if="isModalOpen" :isOpen="isModalOpen" :item="selectedItem" @close="closeModal" />
- <div id="info-box">
+<div id="info-box" v-if="item">
   <h2>{{ item.name }}</h2>
   <p>{{ item.accessLevel }}</p>
   <p>{{ item.description }}</p>
@@ -18,6 +18,10 @@
   <p>{{ item.expire }}</p>
   <button class="button" @click="mintItem">Collect</button>
 </div>
+<div v-else>
+  <p>No item detected. Please hover over a marker.</p>
+</div>
+
 
     <div id="loader" class="loader" style="display: none;"></div>
   </div>
