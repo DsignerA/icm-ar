@@ -355,6 +355,7 @@
         marker.addEventListener('markerLost', (e) => {
           console.log(`lost ${markerId}`);
           this.currentItem = null;
+          infoBox.style.display = 'none';
         });
   
         document.getElementById(entityId).addEventListener('click', (evt) => {
