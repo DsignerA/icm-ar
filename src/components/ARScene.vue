@@ -160,13 +160,13 @@ export default {
       marker.addEventListener('markerLost', (e) => {
         console.log(`lost ${markerId}`);
         this.item = null;
-        infoBox.style.display = 'none'; // Hide info box when marker is lost
+        //infoBox.style.display = 'none'; // Hide info box when marker is lost
       });
       entity.addEventListener('click', (evt) => {
         if (this.allowClicks) {
           const markerDataId = encodeURIComponent(entity.getAttribute('gltf-model'));
           this.fetchMarkerData(markerDataId);
-          infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
+          //infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
         }
       });
     },
