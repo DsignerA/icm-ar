@@ -162,7 +162,6 @@ export default {
         this.item = null;
         infoBox.style.display = 'none'; // Hide info box when marker is lost
       });
-
       entity.addEventListener('click', (evt) => {
         if (this.allowClicks) {
           const markerDataId = encodeURIComponent(entity.getAttribute('gltf-model'));
