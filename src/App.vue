@@ -182,21 +182,7 @@ export default {
         }
       });
     },
-  mounted() {
-    console.log('ARScene component mounted.');
-    this.handleMarkerEvents('marker1', 'myapt1');
-    this.handleMarkerEvents('marker2', 'myapt2');
-
-    document.getElementById('mint-button').addEventListener('click', () => {
-      if (this.currentItem) {
-        this.addItemToInventory(this.currentItem);
-      } else {
-        alert('No item is currently set to mint.');
-      }
-    });
-
-    document.getElementById('view-inventory-button').addEventListener('click', this.displayInventory);
-  },
+ 
 };
 </script>
 
