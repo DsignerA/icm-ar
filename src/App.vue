@@ -136,6 +136,67 @@ export default {
       closeModal,
     };
   },
+  handleMarkerEvents(markerId, entityId) {
+      const marker = document.getElementById(markerId);
+      const entity = document.getElementById(entityId);
+      const infoBox = document.getElementById('info-box');
+
+      if (!marker) {
+        console.error(`Marker with id ${markerId} not found.`);
+        return;
+      }
+
+      if (!entity) {
+        console.error(`Entity with id ${entityId} not found.`);
+        return;
+      }
+
+      marker.addEventListener('markerFound', (e) => {
+        console.log(`found ${markerId}`);
+        this.item = {
+          name: marker.getAttribute('name'),
+          description: marker.getAttribute('description'),
+          perks: JSON.parse(marker.getAttribute('perks')),
+          level: parseInt(marker.getAttribute('level'), 10),
+          amount: parseInt(marker.getAttribute('amount'), 10),
+          expire: new Date(marker.getAttribute('expire')),
+          type: '3d-object',
+          src: entity.getAttribute('gltf-model'),
+          addedAt: new Date().toISOString()
+        };
+        const markerDataId = encodeURIComponent(entity.getAttribute('gltf-model'));
+        this.fetchMarkerData(markerDataId);
+       // infoBox.style.display = 'block'; // Show info box when marker is found
+      });
+
+      marker.addEventListener('markerLost', (e) => {
+        console.log(`lost ${markerId}`);
+        this.item = null;
+        //infoBox.style.display = 'none'; // Hide info box when marker is lost
+      });
+      entity.addEventListener('click', (evt) => {
+        if (this.allowClicks) {
+          const markerDataId = encodeURIComponent(entity.getAttribute('gltf-model'));
+          this.fetchMarkerData(markerDataId);
+          //infoBox.style.display = (infoBox.style.display === 'none' || infoBox.style.display === '') ? 'block' : 'none';
+        }
+      });
+    },
+  mounted() {
+    console.log('ARScene component mounted.');
+    this.handleMarkerEvents('marker1', 'myapt1');
+    this.handleMarkerEvents('marker2', 'myapt2');
+
+    document.getElementById('mint-button').addEventListener('click', () => {
+      if (this.currentItem) {
+        this.addItemToInventory(this.currentItem);
+      } else {
+        alert('No item is currently set to mint.');
+      }
+    });
+
+    document.getElementById('view-inventory-button').addEventListener('click', this.displayInventory);
+  },
 };
 </script>
 
