@@ -8,5 +8,5 @@ const app = createApp(App);
 app.use(router);
 app.mount('#app');
 
-// Ignore custom elements starting with 'a-' to prevent Vue warnings
+// Ignore custom elements starting with 'a-' to prevent Vue warnnings
 app.config.ignoredElements = [/^a-/];
